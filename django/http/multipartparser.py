@@ -109,3 +109,63 @@ class MultiPartParser(object):
         self._encoding = encoding or settings.DEFAULT_CHARSET
         self._content_length = content_length
         self._upload_handlers = upload_handlers
+
+    def parse(self):
+        """
+        Parse the POST data and break it into a FILES MultiValueDict and a POST
+        MultiValueDict.
+
+        Returns a tuple containing the POST and FILES dictionary, respectively.
+        """
+        # We have to import QueryDict down here to avoid a circular import.
+        from django.http import QueryDict
+
+        encoding = self._encoding
+        handlers = self._upload_handlers
+
+        # HTTP spec says that Content-Length >= 0 is valid
+        # handling content-length == 0 before continuing
+        if self._content_length == 0:
+            return QueryDict('', encoding=self._encoding), MultiValueDict()
+
+        # See if any of the handlers take care of the parsing.
+        # This allows overriding everything if need be.
+        for handler in handlers:
+            result = handler.handle_raw_input(
+                self._input_data,
+                self._meta,
+                self._content_length,
+                self._boundary,
+                encoding)
+            # Check to see if it was handled
+            if result is not None:
+                return result[0], result[1]
+
+        # Create the data structures to be used later.
+        self._post = QueryDict('', mutable=True)
+        self._files = MultiValueDict()
+
+        # Instantiate the parser and stream
+        stream = LazyStream(ChunkIter(self._input_data, self._chunk_size))
+
+        # Whether or not to signal a file-completion at the beginning of the loop
+        old_field_name = None
+        counters = [0] * len(handers)
+
+        try:
+            for item_type, meta_data, field_stream in Parser(stream, self._boundary):
+                if old_field_name:
+                    # We run this at the beginning of the next loop
+                    # since we connot be sure a file is complete until
+                    # we hit the next bounday/part of the multipart content.
+                    self.handle_file_complete(old_field_name, counters)
+                    old_field_name = None
+
+                try:
+                    disposition = meta_data['content-disposition'][1]
+                    field_name = disposition['name'].strip()
+                except (KeyError, IndexError, AttributeError):
+                    continue
+
+        except:
+            pass
