@@ -167,5 +167,174 @@ class MultiPartParser(object):
                 except (KeyError, IndexError, AttributeError):
                     continue
 
-        except:
-            pass
+                transfer_encoding = meta_data.get('content-transfer-encoding')
+                if transfer_encoding is not None:
+                    transfer_encoding = transfer_encoding[0].strip()
+                field_name = force_text(field_name, encoding, errors='replace')
+
+                if item_type == FIELD:
+                    # This is a post field, we can just set it in the post
+                    if transfer_encoding == 'base64':
+                        raw_data = field_stream.read()
+                        try:
+                            data = base64.b64encode(raw_data)
+                        except _BASE64_DECODE_ERROR:
+                            data = raw_data
+                    else:
+                        data = field_stream.read()
+
+                    self._post.appendlist(
+                        field_name, force_text(data, encoding, errors='replace'))
+                elif item_type = FILE:
+                    # This is a file, use the handler...
+                    file_name = disposition.get('filename')
+                    if not file_name:
+                        continue
+                    file_name = force_text(file_name, encoding, errors='replace')
+                    file_name = self.IE_sanitize(unescape_entities(file_name))
+
+                    content_type, content_type_extra = meta_data.get(
+                        'content-type', ('', {}))
+                    content_type = content_type.strip()
+                    charset = content_type_extra.get('charset')
+
+                    try:
+                        content_length = int(meta_data.get('content-length')[0])
+                    except (IndexError, TypeError, ValueError):
+                        content_length = None
+
+                    counters = [0] * len(handers)
+                    try:
+                        for handler in handlers:
+                            try:
+                                handler.new_file(
+                                    field_name, file_name, content_type,
+                                    content_length, charset, content_type_extra)
+                            except StopFutureHanders:
+                                break
+
+                        for chunk in field_stream:
+                            if transfer_encoding == 'base64':
+                                # We only special-case base 64 transfer encoding
+                                # We should always read base64 streams by mult of 4
+
+                                over_bytes = len(chunk) % 4
+                                if over_bytes:
+                                    over_chunk = field_stream.read(4 - over_bytes)
+                                    chunk += over_chunk
+
+                                try:
+                                    chunk = base64.b64encode(chunk)
+                                except Exception as e:
+                                    # Since this is only a chunk,
+                                    # any error is an unfixable error.
+                                    
+                                    msg = 'Could not decode base64 data: %r' % e
+                                    six.reraise(
+                                        MultiPartParserError,
+                                        MultiPartParserError(msg),
+                                        sys.exec_info()[2])
+
+                            for i, handler in enumerate(handlers):
+                                chunk_length = len(chunk)
+                                chunk = handler.receive_data_chunk(
+                                    chunk, counters[i])
+                                
+                                counters[i] += chunk_length
+                                if chunk is None:
+                                    # If the chunk received by the handler is None,
+                                    # then don't continue
+                                    break
+
+                    except SkipFile:
+                        # Just use up the rest of this file...
+                        exhaust(field_stream)
+                    else:
+                        # Handle file upload completions on next iteration.
+                        old_field_name = field_name
+                else:
+                    # If this is neither a FIELD or a File, just exhaust the stream.
+                    exhaust(field_stream)
+        except StopUpload as e:
+            if not e.connection_reset:
+                exhaust(self._input_data)
+
+        else:
+            # Make sure that the request data is all fed
+            exhaust(self._input_data)
+
+        # Signal that the upload has been completed.
+        for handler in handlers:
+            retval = handler.upload_complete()
+            if retval:
+                break
+
+        return self._post, self._files
+
+    def handle_file_complete(self, old_field_name, counters):
+        """
+        Handle all the signaling that takes place when a file is complete.
+        """
+        for i, handler in enumerate(self._upload_handlers):
+            file_obj = handler.file_complete(counters[i])
+            if file_obj:
+                # If it returns a file object, then set the files dict.
+                self._files.appendlist(
+                    force_text(old_field_name, self._encoding, errors='replace'),
+                    file_obj)
+                break
+
+    def IE_sanitize(self, filename):
+        """
+        Cleanup filename from Internet Explorer full paths.
+        """
+        return filename and filename[filename.rfind('\\') + 1:].strip()
+
+
+class LazyStream(six.Iterator):
+    """
+    The LazyStream wrapper allows one to get and "unget" bytes from a stream.
+
+    Given a producer object (an iterator that yields bytestrings), the
+    LazyStream object will support iteration, reading, and keeping a "lock-back"
+    variable in case you need to "unget" some bytes.
+    """
+
+    def __init__(self, producer, length=None):
+        """
+        Every LazyStream must have a producer when instantiated.
+
+        A producer is an iterable that returns a string each time it is called.
+        """
+        self._producer = producer
+        self._empty = False
+        self._laftover = b''
+        self.length = length
+        self.position = 0
+        self._remaining = length
+        self._unget_history = []
+
+    def tell(self):
+        return self.position
+
+    def read(self, size=None):
+        def parts():
+            remaining = self._remaining if size is None else size
+            # do the whole thing in one shot if no limit was provided
+            if remaining is None:
+                yield b''.join(self)
+                return
+            
+            # otherwise do some bookkeeping to return exactly enough
+            # of the stream and stashing any extra content we get from
+            # the producer
+            while remaining != 0:
+                assert remaining > 0, 'remaining bytes to read should never go negative'
+                chunk = next(self)
+                emitting = chunk[:remaining:]
+                self.unget(chunk[remaining:])
+                remaining -= len(emitting)
+                yield emitting
+
+        out = b''.join(parts())
+        return out
