@@ -338,3 +338,53 @@ class LazyStream(six.Iterator):
 
         out = b''.join(parts())
         return out
+
+    def __next__(self):
+        """
+        Used when the exact number of bytes to read is unimportant.
+
+        This procedure just returns whatever is chunk is conveniently returned
+        from the iterator instead. Useful to avoid unnecessary bookkeeping if
+        performance is an issue.
+        """
+        if self._leftover:
+            output = self._leftover
+            self._leftover = b''
+        else:
+            output = next(self._producer)
+            self._unget_history = []
+        self.position += len(output)
+        return output
+
+    def close(self):
+        """
+        Used to invalidate/disable this lazy stream.
+
+        Replaces the producer with an empty list. Any leftover bytes that have
+        already been read will still be reported upon read() and/or next().
+        """
+        self._producer = []
+
+    def __iter__(self):
+        return self
+
+    def unget(self, bytes):
+        """
+        Places bytes back onto the front of the lazy stream.
+
+        Future calls to read() will return those bytes first. The
+        stream position and thus tell() will be rewound.
+        """
+        if not bytes:
+            return
+        self._update_unget_history(len(bytes))
+        self.position -= len(bytes)
+        self._leftover = b''.join([bytes, self._leftover])
+
+    def _update_unget_history(self, num_bytes):
+        """
+        Updates the unget history as a sanity check to see if we've pushed
+        back the same number of bytes in one chunk. If we keep ungetting the
+        same number of  bytes many times (here, 50), we're mostly likely in an
+        maliciously-malformed MIME request.
+        """
