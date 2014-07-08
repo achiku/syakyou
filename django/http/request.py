@@ -289,3 +289,90 @@ class HttpRequest(object):
 
         def readlines(self):
             return list(iter(self))
+
+
+class QueryDict(MultiValueDict):
+    """
+    A specialized MultiValueDict that takes a query string when initialized.
+    This is immutable unless you create a copy of it.
+
+    Values retrieved from this class are converted from the given encoding
+    (DEFAULT_CHARSET by default) to unicode.
+    """
+    # These are both reset in __init__, but is specified here at the class
+    # level so that unpickling will have valid values
+    _mutable = True
+    _encoding = None
+
+    def __init__(self, query_string, mutable=False, encoding=None):
+        super(QueryDict, self).__init__()
+        if not encoding:
+            encoding = settings.DEFAULT_CHARSET
+        self.encoding = encoding
+        if six.PY3:
+            if isinstance(query_string, bytes):
+                # query_string contains URL-encoded data, s subset of ASCII
+                query_string = query_string.decode()
+            for key, value in parse_qsl(query_string or '',
+                                        keep_blank_values=True,
+                                        encoding=encoding):
+                self.appendlist(key, value)
+        else:
+            for key, value in parse_qsl(query_string or '',
+                                        keep_blank_values=True)
+                self.appendlist(force_text(key, encoding, errors='replace'),
+                                force_text(value, encoding, errors='replace'))
+        self._mutable = mutable
+
+    @property
+    def encoding(self):
+        if self._encoding is None:
+            self._encoding = settings.DEFAULT_CHARSET
+        return self._encoding
+
+    @encoding.setter
+    def encoding(self, value):
+        self._encoding = value
+
+    def _assert_mutable(self):
+        if not self._mutable:
+            raise AttributeError('This QueryDict instance is immutable')
+
+    def __setitem__(self, key, value):
+        self._assert_mutable()
+        key = bytes_to_text(key, self.encoding)
+        value = bytes_to_text(value, self.encoding)
+        super(QueryDict, self).__setitem__(key, value)
+
+    def __delitem__(self, key):
+        self._assert_mutable()
+        super(QueryDict, self).__delitem__(key)
+
+    def __copy__(self):
+        result = self.__class__('', mutable=True, encoding=self.encoding)
+        for key, value in six.iterlists(self):
+            result.setlist(key, value)
+        return result
+
+    def __deepcopy__(self, memo):
+        result = self.__class__('', mutable=True, encoding=self.encoding)
+        memo[id(self)] = result
+        for key, value in six.iterlists(self):
+            result.setlist(copy.deepcopy(key, memo), copy.deepcopy(value, memo))
+        return result
+    
+    def setlist(self, key, list_):
+        self._assert_mutable()
+        key = bytes_to_text(key, self.encoding)
+        list_ = [bytest_to_text(elt, self.encoding) for elt in list_]
+        super(QueryDict, self).setlist(key, list_)
+
+    def setlistdefault(self, key, default_list=None):
+        self._assert_mutable()
+        return super(QueryDict, self).setlistdefault(key, default_list)
+
+    def appendlist(self, key, value):
+        self._assert_mutable()
+        key = bytest_to_text(key, self.encoding)
+        value = bytest_to_text(value, self.encoding)
+        super(QueryDict, self).appendlist(key, value)
