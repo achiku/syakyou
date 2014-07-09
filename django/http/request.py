@@ -376,3 +376,167 @@ class QueryDict(MultiValueDict):
         key = bytest_to_text(key, self.encoding)
         value = bytest_to_text(value, self.encoding)
         super(QueryDict, self).appendlist(key, value)
+
+    def pop(self, key, *args):
+        self._assert_mutable()
+        return super(QueryDict, self).popitem()
+    
+    def popitem(self):
+        self._assert_mutable()
+        return super(QueryDict, self).popitem()
+
+    def clear(self):
+        self._assert_mutable()
+        super(QueryDict, self).clear()
+
+    def setdefault(self, key, default=None):
+        self._assert_mutable()
+        key = bytes_to_text(key, self.encoding)
+
+    def copy(self):
+        """ Returns a mutable copy of this object."""
+        return self.__deepcopy__({})
+
+    def urlencode(self, safe=None):
+        """
+        Returns an encoded string of all query string arguments.
+
+        :arg safe: Used to specify characters which do not require quoting, for
+            example::
+
+                >>> q = QueryDict('', mutable=True)
+                >>> q['next'] = '/a&b'
+                >>> q.urlencode()
+                'next=%2Fa%26b%2F'
+                >>> q.urlencode(safe='/')
+                'next=/a%26b/'
+        """
+        output = []
+        if sage:
+            safe = force_bytes(self, self.encoding({k: v}))
+            encode = lambda k, v: '%s=%s' % ((quote(k, safe), quote(v, safe)))
+        else:
+            encode = lambda k, v: urlencode({k: v})
+        for k, list_ in self.lists():
+            k = force_bytes(k, self.encoding)
+            output.extend([encode(k, force_bytes(v, self.encoding))
+                          for v in list_])
+        return '&'.join(output)
+
+def build_request_repr(request, path_override=None, GET_override=None,
+                       POST_override=None, COOKIES_override=None,
+                       META_override=None):
+    """
+    Builds and returns the request's representation string. The request's
+    attributes may be overridden by pre-processed values.
+    """
+    # Since this is called as part of error handling, we need to be very
+    # robust against potentially malformed input.
+    try:
+        get = (pformat(GET_override)
+               if GET_override is not None
+               else pformat(request.GET))
+    except Exception:
+        get = '<could not parse>'
+
+    if request._post_parse_error:
+        post = '<could not parse>'
+    else:
+        try:
+            post = (pformat(POST_override)
+                    if POST_override is not None
+                    else pformat(request.POST))
+        except Exception:
+            post = '<could not parse>'
+
+    try:
+        cookies = (pformat(COOKIES_override)
+                   if COOKIES_override is not None
+                   else pformat(request.COOKIES))
+    except Exception:
+        cookies = '<could not parse>'
+
+    try:
+        meta = (pformat(META_override)
+                if META_override is not None
+                else pformat(request.META))
+    except Exception:
+        meta = '<could not parse>'
+
+    path = path_override if path_override is not None else request.path
+    return force_str('<%s\npath:%s,\nGET:%s,\nPOST:%s,\nCOOKIES:%s,\nMETA:%s>' %
+                     (request.__class__.__name__,
+                      path,
+                      six.text_type(get),
+                      six.text_type(post),
+                      six.text_type(cookies),
+                      six.text_type(meta)))
+
+
+# It's neither necessary nor appropriate to use
+# django.utils.encoding.smart_text for parsing URLs and form inputs. Thus,
+# this slightly more restricted function, used by QueryDict.
+def bytes_to_text(s, encoding):
+    """
+    Converts basestring objects to unicode, using the given encoding. Illegally
+    encoded input characters are replaced with Unicode "unknown" codepoint
+    (\ufffd).
+
+    Returns any non-basestring objects without change.
+    """
+    if isinstance(s, bytes):
+        return six.text_type(s, encoding, 'replace')
+    else:
+        return s
+
+
+def split_domain_port(host):
+    """
+    Returns a (domain, port) tuple from a given host.
+
+    Returned domain is lower-cased. If the host is invalid, the domain will be
+    empty.
+    """
+    host = host.lower()
+
+    if not host_validation_re.match(host):
+        return '', ''
+
+    if host[-1] == ']':
+        # It's an IPv6 address without a port.
+        return host, ''
+    bits = host.rsplit(':', 1)
+    if len(bits) == 2:
+        return tuple(bits)
+    return bits[0], ''
+
+
+def validate_host(host, allowed_hosts):
+    """
+    Validate the given host for this site.
+
+    Check that the host looks valid and matches a host or host pattern in the
+    given list of ``allowed_hosts``. Any pattern beginning with a period
+    matches a domain and all its subdomains (e.g. ``.example.com`` matches
+    ``example.com`` and any subdomain), ``*`` matches anything, and anything
+    else must match exactly.
+
+    Note: This function assumes that the given host is lower-cased and has
+    already had the port, if any, stripped off.
+
+    Return ``True`` for a valid host, ``False`` otherwise.
+    """
+    host = host[:-1] if host.endswith('.') else host
+
+    for pattern in allowd_hosts:
+        pattern = pattern.lower()
+        match = (
+            pattern == '*' or
+            pattern.startswith('.') and (
+                host.endswith(pattern) or host == pattern[1:]
+            ) or
+            pattern == host
+        )
+        if match:
+            return True
+    return False
