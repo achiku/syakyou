@@ -174,3 +174,170 @@ class Register(abc.ABCMeta):
                         "Global parameter %r registered by multiple classes".format(param_name))
                 global_params[param_name] = param_obj
         return global_params.iteritems()
+
+
+class Task(object):
+    """
+    This is the base class of all Luigi Tasks, the base unit of work in Luigi.
+
+    A Luigi Task describes a unit of work. The key methods of a Task, which must
+    be implemented in a subclass are:
+
+    * :py:meth:`run` - the computation done by this task.
+    * :py:meth:`requires` - the list of Tasks that this Task depends on.
+    * :py:meth:`output` - the output :py:class:`Target` that this Task creates.
+
+    Parameters to the Task should be declared as members of the class, e.g.::
+
+        class MyTask(luigi.Task):
+            count = luigi.IntParameter()
+
+    Each Task exposes a constructor accepting all :py:class:`Parameter` (and
+    values as kwargs. e.g. ``MyTask(count=10)`` would instantiate `MyTask`.
+
+    In addition to any declared properties and methods, there are a few
+    non-declared properties, which are created by the :py:class:`Register`
+    metaclass:
+
+    ``Task.task_namespace``
+       optional string which is prepended to the task name for the sake of
+       scheduling. If it isn't overridden in a Task, whatever was last declared
+       using `luigi.namespace` will be used.
+
+    ``Task._parameters``
+       list of ``(parameter_name, parameter)`` tuples for this task class.
+    """
+    __metaclass__ = Register
+    _event_callbacks = {}
+
+    # Priority of the task: the scheduler should favor available
+    # tasks with higher priority value first.
+    priority = 0
+
+    @classmethod
+    def event_handler(cls, event):
+        """ Decorator for adding event handlers """
+        def wrapped(callback):
+            cls._event_callbacks.setdefault(cls, {}).setdefault(event, set()).add(callback)
+            return callback
+        return wrapped
+
+    def trigger_event(self, event, *args, **kwargs):
+        """
+        Trigger that calls all of the specified events associated with this class.
+        """
+        for event_class, event_callbacks in self._event_callbacks.iteritems():
+            if not isinstance(self, event_class):
+                continue
+            for callback in event_callbacks.get(event, []):
+                try:
+                    # callbacks are protected
+                    callback(*args, **kwargs)
+                except KeyboardInterrupt:
+                    return
+                except:
+                    logger.exception('Error in event callback for {}.'.format(event))
+                    pass
+
+    @property
+    def task_family(self):
+        """
+        Convenience method since a property on the metaclass isn't directly
+        accessible through the class instances.
+        """
+        return self.__class__.task_family
+
+    @classmethod
+    def get_params(cls):
+        """
+        Returns all of the Parameters for this Task.
+        """
+        # We want to do this here and not at class instantiation,
+        # or else there is no room to extend classes dynamically
+
+        params = []
+        for param_name in dir(cls):
+            param_obj = getattr(cls, param_name)
+            if not isinstance(param_obj, Parameter):
+                continue
+            params.append((param_name, param_obj))
+        # The order the parameters are created matters. See Parameter class.
+        params.sort(key=lambda t: t[1].counter)
+        return params
+
+    @classmethod
+    def get_global_params(cls):
+        """
+        Returns the global parameters for this Task.
+        """
+        return [(param_name, param_obj)
+                for param_name, param_obj in cls.get_params() if param_obj.is_global]
+
+    @classmethod
+    def get_nonglobal_params(cls):
+        """
+        Returns the non-global parameters for this Task.
+        """
+        return [(param_name, param_obj)
+                for param_name, param_obj in cls.get_params() if not param_obj.is_global]
+
+    @classmethod
+    def get_param_values(cls, params, args, kwargs):
+        """
+        Get the values of the parameters from the args and kwargs.
+
+        :param params: list of (param_name, Parameter).
+        :param args: positional arguments
+        :param kwargs: keyword arguments.
+        :returns: list of `(name, value)` tuples, one for each parameter.
+        """
+        result = {}
+        params_dict = dict(params)
+        # In case any exception are thrown, create a helpful description of how the Task was invoked
+        # TODO: should we detect non-reprable arguments? There will lead to mysterious errors
+        exec_desc = '{0}[args={1}, kwargs={2}]'.format(cls.__name__, args, kwargs)
+
+        # Fill in the positional arguments
+        positional_params = [(n, p) for n, p in params if not p.is_global]
+        for i, arg in enumerate(args):
+            if i >= len(positional_params):
+                raise parameter.UnknownParameterException(
+                    '{0}: takes at most {1} parameters ({2} given)'.format(
+                        exec_desc, len(positional_params), len(args))
+                )
+            param_name, param_obj = positional_params[i]
+            result[param_name] = arg
+
+            # Then the optional arguments
+            for param_name, arg in kwargs.iteritems():
+                if param_name in result:
+                    raise parameter.DuplicateParameterException(
+                        '{0}: parameter {1} was already sset as a positional parameter'.format(
+                            exec_desc, param_name)
+                    )
+                if param_name not in params_dict:
+                    raise parameter.UnknownParameterException(
+                        '{0}: unknown parameter {1}'.format(exec_desc, param_name)
+                    )
+                if params_dict[param_name].is_global:
+                    raise parameter.ParameterException(
+                        '{0}: can not override global parameter {1}'.format(exec_desc, param_name)
+                    )
+                result[param_name] = arg
+                # Then use the defaults for anything not filled in.
+                for param_name, param_obj in params:
+                    if param_name not in result:
+                        if not param_obj.has_default:
+                            raise parameter.MissingParameterException(
+                                '{0}: requires the {1} parameter to be set'.format(
+                                    exec_desc, param_name)
+                            )
+
+                def list_to_tuple(x):
+                    """ Make tuples out of lists and sets to allow hashing.
+                    """
+                    if isinstance(x, list) or isinstance(x, set):
+                        return tuple(x)
+                    else:
+                        return x
+                return [(param_name, list_to_tuple(result[param_name])) for param_name, param_obj in params]
