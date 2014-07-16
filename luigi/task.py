@@ -308,36 +308,95 @@ class Task(object):
             param_name, param_obj = positional_params[i]
             result[param_name] = arg
 
-            # Then the optional arguments
-            for param_name, arg in kwargs.iteritems():
-                if param_name in result:
-                    raise parameter.DuplicateParameterException(
-                        '{0}: parameter {1} was already sset as a positional parameter'.format(
+        # Then the optional arguments
+        for param_name, arg in kwargs.iteritems():
+            if param_name in result:
+                raise parameter.DuplicateParameterException(
+                    '{0}: parameter {1} was already sset as a positional parameter'.format(
+                        exec_desc, param_name)
+                )
+            if param_name not in params_dict:
+                raise parameter.UnknownParameterException(
+                    '{0}: unknown parameter {1}'.format(exec_desc, param_name)
+                )
+            if params_dict[param_name].is_global:
+                raise parameter.ParameterException(
+                    '{0}: can not override global parameter {1}'.format(exec_desc, param_name)
+                )
+            result[param_name] = arg
+
+        # Then use the defaults for anything not filled in.
+        for param_name, param_obj in params:
+            if param_name not in result:
+                if not param_obj.has_default:
+                    raise parameter.MissingParameterException(
+                        '{0}: requires the {1} parameter to be set'.format(
                             exec_desc, param_name)
                     )
-                if param_name not in params_dict:
-                    raise parameter.UnknownParameterException(
-                        '{0}: unknown parameter {1}'.format(exec_desc, param_name)
-                    )
-                if params_dict[param_name].is_global:
-                    raise parameter.ParameterException(
-                        '{0}: can not override global parameter {1}'.format(exec_desc, param_name)
-                    )
-                result[param_name] = arg
-                # Then use the defaults for anything not filled in.
-                for param_name, param_obj in params:
-                    if param_name not in result:
-                        if not param_obj.has_default:
-                            raise parameter.MissingParameterException(
-                                '{0}: requires the {1} parameter to be set'.format(
-                                    exec_desc, param_name)
-                            )
 
-                def list_to_tuple(x):
-                    """ Make tuples out of lists and sets to allow hashing.
-                    """
-                    if isinstance(x, list) or isinstance(x, set):
-                        return tuple(x)
-                    else:
-                        return x
-                return [(param_name, list_to_tuple(result[param_name])) for param_name, param_obj in params]
+        def list_to_tuple(x):
+            """ Make tuples out of lists and sets to allow hashing.
+            """
+            if isinstance(x, list) or isinstance(x, set):
+                return tuple(x)
+            else:
+                return x
+        # Sort it by the correct order and make a list
+        return [(param_name, list_to_tuple(result[param_name])) for param_name, param_obj in params]
+
+    def __init__(self, *args, **kwargs):
+        """
+        Constructor to resolve values for all Parameters.
+        For example, the Task::
+
+            class MyTask(luigi.Task):
+                count = luigi.IntParameter()
+
+        can be instantiated as ``MyTask(count=10)``.
+        """
+        params = self.get_params()
+        param_values = self.get_param_values(params, args, kwargs)
+
+        # Set all values on class instance
+        for key, value in param_values:
+            setattr(self, key, value)
+
+        # Register args and kwargs as an attribute on the class. Might be useful
+        self.param_args = tuple(value for key, value in param_values)
+        self.param_kwargs = dict(param_values)
+
+        # Build up task id
+        task_id_parts = []
+        param_objs = dict(params)
+        for param_name, param_value in param_values:
+            if dict(params)[param_name].significant:
+                task_id_parts.append(
+                    '{0}={1}'.format(param_name, param_objs[param_name].serialize(param_value)))
+
+        self.task_id = '{0}({1})'.format(self.task_family, ', '.join(task_id_parts))
+        self.__hash = hash(self.task_id)
+
+    def initialized(self):
+        """ Returns ``True`` if the Task is initialized and ``False`` otherwise. """
+        return hasattr(self, 'task_id')
+
+    @classmethod
+    def from_input(cls, params, global_params):
+        """
+        Creates an instance from a str->str hash
+
+        This method is for parsing of command line arguments or other
+        non-programmatic invocations.
+
+        :param params: dict of param name -> value.
+        :param global_params: dict of param name -> value, the global params.
+        """
+        for param_name, param in global_params:
+            value = param.parse_from_input(param_name, params[param_name])
+            param.set_default(value)
+
+        kwargs = {}
+        for param_name, param in cls.get_nonglobal_params():
+            value = param.parse_from_input(param_name, params[param_name])
+
+        return cls(**kwargs)
