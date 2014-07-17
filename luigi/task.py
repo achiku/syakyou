@@ -400,3 +400,124 @@ class Task(object):
             value = param.parse_from_input(param_name, params[param_name])
 
         return cls(**kwargs)
+
+    def clone(self, cls=None, **kwargs):
+        """
+        Creates a new instance from an existing instance where some of the args have changed.
+
+        There's at least two scenarios where this is useful (see test/clone_test.py)
+        - Remove a lot of biler plate when you have recursive dependencies and lots of args
+        - There's task inheritance and some logic is on the base class
+        """
+        k = self.param_kwargs.copy()
+        k.update(kwargs.items())
+
+        if cls is None:
+            cls = self.__class__
+
+        new_k = {}
+        for param_name, param_class in cls.get_nonglobal_params():
+            if param_name in k:
+                new_k[param_name] = k[param_name]
+
+        return cls(**new_k)
+
+    def __hash__(self):
+        return self.__hash
+
+    def __repr__(self):
+        return self.task_id
+
+    def complete(self):
+        """
+        If the task has an outputs, return ``True`` if all outputs exist.
+        Otherwise, return whether or not the task has run or not.
+        """
+        outputs = flatten(self.output())
+        if len(outputs) == 0:
+            # TODO: unclear if tasks without outputs should always run or never run
+            warnings.warn('Task {} without outputs has no custom complete() method'.format(self))
+            return False
+
+        for output in outputs:
+            if not output.exists():
+                return False
+        else:
+            return True
+
+    def output(self):
+        """
+        The output that this task produces.
+
+        The output of the Task determines if the Task needs to be run --the task
+        is considered finished if the outputs all exist. Subclasses should
+        override this method to return a sinble :py:class:`Target` or list of
+        :py:class:`Target` instances.
+        """
+        return []
+
+    def requires(self):
+        """
+        The Tasks that this Task depends on.
+
+        A Task will only run if all of the Tasks that it requires are completed.
+        If your Task does not require any other Tasks, then you don't need to
+        override this method. Otherwise, a Subclass can override this method
+        to return a single Task, a list of Task instances, or a dict whose
+        values are Task instances.
+        """
+        return []
+
+    def _requires(self):
+        """
+        Override in "template" tasks which themselves are supposed to be
+        subclassed and thus have their requires() overridden (name preserved to
+        provide consistent end-user experience), yet need to introduce
+        (non-input) dependencies.
+
+        Must return an iterable which among others contains the _requires() of
+        the subclass.
+        """
+        return flatten(self.requires())
+
+    def input(self):
+        """
+        Returns the outputs of the Tasks returned by :py:metho:`requires`
+
+        :return: a list of :py:class:`Target` objects which are specified as
+                 outputs of all required Tasks.
+        """
+        return getpaths(self.requires())
+
+    def deps(self):
+        """
+        Internal method used by the scheduler.
+        Returns the flattend lsit of requires.
+        """
+        return flatten(self._requires())
+
+    def run(self):
+        """
+        The task run method, to be overridden in a subclass.
+        """
+        pass
+
+    def on_failure(self, exception):
+        """
+        Override for custom error handling
+
+        This method gets called if an exception is raised in run.
+        Return value of this method is json encoded and sent to the scheduler as the `expl` argument.
+        Its string representation will be used as the body of the error email sent out if any.
+
+        Default behavior is to return a string representation of the stack trace.
+        """
+        traceback_string = traceback.format_exc()
+        return 'Runtime error\:\n{}'.format(traceback_string)
+
+    def on_success(self):
+        """
+        Override for doing custom completion handling for a larger class of tasks.
+
+        This method gets called when :py:metho:`run` 
+        """
