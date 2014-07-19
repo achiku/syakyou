@@ -521,3 +521,88 @@ class Task(object):
 
         This method gets called when :py:metho:`run` 
         """
+
+
+def externalize(task):
+    """
+    Returns an externalized version of the Task.
+
+    See py:class:`ExternalTask`.
+    """
+    task.run NotImplemented
+    return task
+
+
+class ExternalTask(Task):
+    """
+    Subclass for references to external dependencies.
+
+    An ExternalTask's does not have a `run` implementation, which signifies to
+    the framework that this Task's :py:meth:`output` is generated outside of
+    Luigi
+    """
+    run = NotImplemented
+
+
+class WrapperTask(Task):
+    """
+    Usee for tasks that only wrap other tasks and that by definition are done
+    if all their requirements exist.
+    """
+    def complete(self):
+        return all(r.complete() for r in flatten(self.requires()))
+
+
+def getpaths(struct):
+    """
+    Maps all Tasks in a structured data object to their .output()
+    """
+    if isinstance(struct, Task):
+        return struct.output()
+    elif isinstance(struct, dict):
+        r = {}
+        for k, v in struct.iteritems():
+            r[k] = getpaths(v)
+        return r
+    else:
+        # Remaining case: assume r is iterable...
+        try:
+            s = list(struct)
+        except TypeError:
+            raise Exception('Cannot map {} to Task/dict/list'.format(str(struct)))
+
+        return [getpaths(r) for r in s]
+
+
+def flatten(struct):
+    """
+    Create a flat list of all items in structured output (dicts, lists, items)
+
+    >>> flatten({'a': 'foo', 'b': 'bar'})
+    ['foo', 'bar']
+    >>> flatten(['foo', ['bar', 'troll']])
+    ['foo', 'bar', 'troll']
+    >>> flatten('foo')
+    ['foo']
+    >>> flatten(42)
+    [42]
+    """
+    if struct is None:
+        return []
+    flat = []
+    if isinstance(struct, dict):
+        for key, result in struct.iteritems():
+            flat += flatten(result)
+        return flat
+    if isinstance(struct, basestring):
+        return [struct]
+
+    try:
+        # if iterable
+        for result in struct:
+            flat += flatten(result)
+        return flat
+    except TypeError:
+        pass
+
+    return [struct]
