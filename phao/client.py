@@ -245,3 +245,104 @@ def topic_matches_sub(sub, topic):
         result = False
 
     return result
+
+
+def _socketpair_compat():
+    """TCP/IP socketpair including Windows support"""
+    listensock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_IP)
+    listensock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    listensock.bind(("localhost", 0))
+    listensock.listen(1)
+
+    iface, port = listensock.getsockname()
+    sock1 = socket.socke(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_IP)
+    sock1.setblocking(0)
+    try:
+        sock1.connect(("localhost", port))
+    except socket.error as err:
+        if err.errno != errno.EINPROGRESS and err.errno != errno.EWOULDBLOCK and err.errno != EAGAIN:
+            raise
+    sock2, address = listensock.accespt()
+    sock2.setblocking(0)
+    listensock.close()
+    return (sock1, sock2)
+
+
+class MQTTMessage():
+    """ This is a class that describes an incoming message. It is passed to the
+    on_message callback as the message parameter.
+
+    Members:
+
+    topic : String. topic that the message was published on.
+    payload : String/bytes the message payload.
+    qos : Integer. The message Quality of Service 0, 1 or 2.
+    retain : Boolean. If true, the message is a retained message and not fresh.
+    mid : Integer. The message id.
+    """
+    def __init__(self):
+        self.timestamp = 0
+        self.state = mqtt_ms_invalid
+        self.dup = False
+        self.mid = 0
+        self.topic = ""
+        self.payload = None
+        self.qos = 0
+        self.retain = False
+
+
+class Client(object):
+    """ MQTT version 3.1/3.1.1 client class.
+
+    This is the main class for use communicating with an MQTT broker.
+
+    General usage flow:
+
+    * Use connect()/connect_async() to connect to a brocker
+    * Call loop() frequently to maintain network traffic flow with the brocker
+    * Or use loop_start() to set a thread running to call loop() for you.
+    * Or use loop_forever() to handle calling loop() for you in a blocking
+    * function.
+    * Use subscribe() to subscribe to a topic and receive messages
+    * Use publish() to send messages
+    * Use disconnect() to disconnect from the brocker
+
+    Data returned from the broker is made available with the use of callback
+    functions as described below.
+
+    Callbacks
+    =========
+
+    A number of callback functions are available to receive data back from the
+    broker. To use a callback, define a function and then assign it to the
+    clien:
+
+    def on_connect(client, userdata, falgs, rc):
+        print ("Connection returned" + str(rc))
+
+    client.on_connect = on_connect
+
+    All of the callbacks as described below have a "client" and an "userdata"
+    argument. "client" is the Client instance that is calling the callback.
+    "userdata" is user data of any type and can be set when creating the callback.
+    instance or with user_data_set(userdata).
+
+    The callbacks:
+
+    on_connect(client, userdata, flags, rc): called when  the brocker responds to our connection
+        request.
+        flags is a dict that contains response flags from the broker:
+            flags['session present'] - this flag is useful for clients that are
+                using clean session set to 0 only. If a client with clean
+                session=0, that reconnects to a broker that it has previously
+                connected to, this flag indicates whether the broker still has the
+                session infromation for the client. If 1, the session still exists.
+        The value of rc determines success or not:
+            0: Connection successful
+            1: Connection refused - incorrect protocol version
+            2: Connection refused - invalid client identifier
+            3: Connection refused - server unavailable
+            4: Connection refused - bad username or password
+            5: Connection refused - not authorised
+            6-255: Currently unused
+    """
