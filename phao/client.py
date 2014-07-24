@@ -336,7 +336,7 @@ class Client(object):
                 using clean session set to 0 only. If a client with clean
                 session=0, that reconnects to a broker that it has previously
                 connected to, this flag indicates whether the broker still has the
-                session infromation for the client. If 1, the session still exists.
+                session information for the client. If 1, the session still exists.
         The value of rc determines success or not:
             0: Connection successful
             1: Connection refused - incorrect protocol version
@@ -345,4 +345,211 @@ class Client(object):
             4: Connection refused - bad username or password
             5: Connection refused - not authorised
             6-255: Currently unused
+
+    on_disconnect(client, userdata, rc): called when the client disconnects from the broker.
+        The rc parameter indicates the disconnection state. If MQTT_ERR_SUCCESS
+        (0), the callback was called in response to a disconnect() call. If any
+        other value the disconnection was unexpected, such as might be caused by
+        a network error.
     """
+    def __init__(self, client_id="", clean_session=True, userdata=None, protocol=MQTTv311):
+        """ client_id is the unique client id string used when connecting to the
+        broker. If client_id is zero length or None, then one will be randomly
+        generated. In this case, clean_session must be True. If this is not the
+        case a ValueError will be raised.
+
+        clean_session is a boolean that determines the client type. If True,
+        the broker will remove all information about this client when it
+        disconnects. If False, the client is a persistent client and
+        subscription information and queued messages will be retained when the
+        client disconnects.
+        Note that a client will never discard its own outgoing messages on
+        disconnect. Calling connect() or reconnect() will cause the messages to
+        be resent. Use reinitialise() to reset a client to its original state.
+
+        userdata is user defined data of any type that is passed as the "userdata"
+        parameter to callbacks. It may be updated at a later point with the
+        user_data_set() function.
+        """
+        if not clean_session and (client_id == "" or client_id is None):
+            raise ValueError('A client id must be provided if clean session is False')
+
+        self._protocol = protocol
+        self._userdata = userdata
+        self._sock = None
+        self._sockpairR, self._sockpairW = _socketpair_compat()
+        self._keepalive = 60
+        self._message_retry = 20
+        self._last_retry_check = 0
+        self._clean_session = clean_session
+        if client_id == "" or client_id is None:
+            self._client_id = "paho/" + "".join(random.choice("0123456789ABCDEF") for x in range(23-5))
+        else:
+            self._client_id = client_id
+
+        self._username = ""
+        self._password = ""
+        self._in_packet = {
+            "command": 0,
+            "have_remaining": 0,
+            "remaining_count": [],
+            "remaining_mult": 1,
+            "remaining_length": 0,
+            "packet": b"",
+            "to_process": 0,
+            "pos": 0}
+        self._out_packet = []
+        self._current_out_packet = None
+        self._last_msg_in = time.time()
+        self._last_msg_out = time.time()
+        self._ping_t = 0
+        self._last_mid = 0
+        self._state = mqtt_cs_new
+        self._out_messages = []
+        self._in_messages = []
+        self._max_inflight_messages = 20
+        self._inflight_messages = 0
+        self._will = False
+        self._will_topic = ""
+        self._will_payload = None
+        self._will_qos = 0
+        self._will_retain = False
+        self.on_disconnect = None
+        self.on_connect = None
+        self.on_publish = None
+        self.on_message = None
+        self.on_message_filtered = []
+        self.on_subscribe = None
+        self.on_unsubscribe = None
+        self.on_log = None
+        self._host = ""
+        self._port = 1883
+        self._bind_address = ""
+        self._in_callback = False
+        self._strict_protocol = False
+        self._callback_mutex = threading.Lock()
+        self._state_mutex = threading.Lock()
+        self._out_packet_mutex = threading.Lock()
+        self._current_out_packet_mutex = threading.Lock()
+        self._msgtime_mutex = threading.Lock()
+        self._out_message_mutex = threading.Lock()
+        self._in_message_mutex = threading.Lock()
+        self._thread = None
+        self._thread_terminate = False
+        self._ssl = None
+        self._tls_certfile = None
+        self._tls_keyfile = None
+        self._tls_ca_certs = None
+        self._tls_cert_reqs = None
+        self._tls_ciphers = None
+        self._tls_version = tls_version
+        self._tls_insecure = False
+
+    def __del__(self):
+        pass
+
+    def reinitialise(self, client_id="", clean_session=True, userdata=None):
+        if self._ssl:
+            self._ssl.close()
+            self._ssl = None
+        elif self._sock:
+            self._sock.close()
+            self._sock = None
+        if self._sockpairR:
+            self._sockpairR.close()
+            self._sockpairR = None
+        if self._sockpairW:
+            self._sockpairW.close()
+            self._sockpairW = None
+
+    def tls_set(self, ca_certs, certfile=None, keyfile=Nne, cert_reqs=cert_reqs, tls_version=tls_version, ciphers=None):
+        """Configure network encryption and authentication options Enables SSL/TLS support.
+
+        ca_certs: a string path to the Certificate Authority certificate files
+        that are to be treated as trusted by this client. If this is the only
+        option given then the client will operate in a similar manner to a web
+        browser. That is to say it will require the broker to have a
+        certificate signed by the Certificate Authorities in ca_certs and will
+        communicate using TLS v1, but will not attempt any form of
+        authentication. This provides basic network encryption but may not be
+        sufficient depending on how the broker is configured.
+
+        certfile and keyfile are strings pointing to the PEM encoded client
+        certificate and private keys respectively. If these arguments are not
+        None then they will be used as client information for TLS based
+        authentication. Support for this feature is broker dependent. Note
+        that if either of these files in encrypted and needs a password to
+        decrypt it, Python will ask for the password at the command line. It is
+        not currently possible to define a callback to provide the password.
+
+        cert_reqs allows the certificate requirements that the client imposes
+        on the broker to be changed. By default this is ssl.CERT_REQUIRED,
+        which means that the broker must provide a certificate. See the ssl
+        pydoc for more information on this parameter.
+
+        tls_version allows the version of the SSL/TLS protocol used to be
+        specified. By default TLS v1 is used. Previous versions (all versions
+        beginning with SSL) are possible but not recommended due to possible
+        security problems.
+
+        ciphers is a string specifying which encryption ciphers are allowable
+        for this connection, or None to use the defaults. See the ssl pydoc for
+        more information.
+
+        Must be called before connect() or connect_async()
+        """
+        if HAVE_SSL is False:
+            raise ValueError('This platform has no SSL/TLS')
+        
+        if sys.version < '2.7':
+            raise ValueError('Python 2.7 is the minimum supported version for TLS.')
+
+        if ca_certs is None:
+            raise ValueError('ca_certs must not be None.')
+
+        try:
+            f = open(ca_certs, "r")
+        except IOError as err:
+            raise IOError(ca_certs+": "+err.strerror)
+        else:
+            f.close()
+        if certfile is not None:
+            try:
+                f = open(certfile, "r")
+            except IOError as err:
+                raise IOError(certfile+": "+err.strerror)
+            else:
+                f.close()
+        if keyfile is not None:
+            try:
+                f = open(keyfile, "r")
+            except IOError as err:
+                raise IOError(keyfile+": "+err.strerror)
+            else:
+                f.close()
+
+        self._tls_ca_certs = ca_certs
+        self._tls_certfile = certfile
+        self._tls_keyfile = keyfile
+        self._tls_cert_reqs = cert_reqs
+        self._tls_version = tls_version
+        self._tls_ciphers = ciphers
+
+    def tls_insecure_set(self, value):
+        """Configure verification of the server hostname in the server certificate.
+
+        If value is set to true, it is impossible to guarantee that the host
+        you are connecting to is not impersonating your server. This can be
+        useful in initial server testing, but makes it possible for a malicious
+        third party to impersonate yoru serevr through DNS spoofing, for
+        example.
+
+        Do not use this function in a real system. Setting value to true means
+        there is no point using encryption.
+
+        Must be called before connect()
+        """
+        if HAVE_SSL is False:
+            raise ValueError('This platform has no SSL/TLS.')
+
+        self._tls_insecure = value
