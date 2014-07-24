@@ -553,3 +553,59 @@ class Client(object):
             raise ValueError('This platform has no SSL/TLS.')
 
         self._tls_insecure = value
+
+    def connect(self, host, port=1883, keepalive=60, bind_address=""):
+        """Connect to a remote broker.
+
+        host is the hostname or IP address of the remote broker.
+        port is the network port of the server host to connect to. Defaults to
+        1883. Note that the default port for MQTT over SSL/TLS is 8883 so if you
+        are using tls_set() the port may need providing.
+        keepalive: Maximum period in seconds between communications with the
+        broker. If no other messages are being exchanged, this controls the
+        rate at which the client will send ping message to the broker.
+        """
+        self.connect_async(host, port, keepalive, bind_address)
+        return self.reconnect()
+
+    def connect_srv(self, domain=None, keepalive=60, bind_address=""):
+        """Connect to a remote broker.
+
+        domain is the DNS domain to search for SRV records; if None,
+        try to determine local domain name.
+        keepalive adn bind_address are for connect()
+        """
+        if HAVE_DNS is False:
+            raise ValueError('No DNS resolver library found.')
+
+        if domain is None:
+            domain = socket.getfqdn()
+            domain = domain[domain.find('.') + 1:]
+
+        try:
+            rr = '_mqtt._tcp.{}'.format(domain)
+            if self._ssl is not None:
+                # IANA specifies secure-mqtt (not mqtts) for port 8883
+                rr = '_secure-mqtt._tcp.{}'.format(domain)
+            answers = []
+            for answer in dns.resolver.query(rr, dns.rdatatype.SRV):
+                addr = answer.target.to_text()[:-1]
+                answers.append((addr, answer.port, answer.priority, answer.weight))
+        except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer, dns.resolver.NoNameservers):
+            raise ValueError("No answer/NXDOMAIN for SRV in {}".format(domain))
+
+        # FIXME: doesn't account for weight
+        for answer in answers:
+            host, port, prio, weight = answer
+            try:
+                return self.connect(host, port, keepalive, bind_address)
+            except:
+                pass
+
+        raise ValueError("No SRV hosts responded")
+
+    def connect_async(self, host, port=1883, keepalive=60, bind_address=""):
+        """Connect to a remote broker asynchronously. This is a non-blocking
+        connect call that can be used with loop_start() to provide very quick
+        start.
+        """
