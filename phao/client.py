@@ -609,3 +609,107 @@ class Client(object):
         connect call that can be used with loop_start() to provide very quick
         start.
         """
+        if host is None or len(host) == 0:
+            raise ValueError('Invalid host.')
+        if port <= 0:
+            raise ValueError('Invalid port number.')
+        if keepalive < 0:
+            raise ValueError('Keepalive must be >= 0.')
+        if bind_address != "" and bind_address is not None:
+            below_required_ver = (
+                (sys.version_info[0] == 2 and sys.version_info[1] < 7)
+                or (sys.version_info[0] == 3 and sys.version_info[1] < 2)
+            )
+            if below_required_ver:
+                raise ValueError('bind_address requires Python 2.7 or 3.2.')
+
+        self._host = host
+        self._port = port
+        self._keepalive = keepalive
+        self._bind_address = bind_address
+
+        self._state_mutex.acquire()
+        self._state = mqtt_cs_connect_async
+        self._state_mutex.release()
+
+    def reconnect(self):
+        """Reconnect the client after a disconnect. Can only be called after
+        connect()/connect_async().
+        """
+        if len(self._host) == 0:
+            raise ValueError('Invalid host.')
+        if self._port <= 0:
+            raise ValueError('Invalid port number.')
+
+        self._in_packet = {
+            "command": 0,
+            "have_remaining": 0,
+            "remaining_count": [],
+            "remaining_mult": 1,
+            "remaining_length": 0,
+            "packet": b"",
+            "to_process": 0,
+            "pos": 0
+        }
+
+        self._out_packet_mutex.acquire()
+        self._out_packet = []
+        self._out_packet_mutex.release()
+
+        self._current_out_packet_mutex.acquire()
+        self._current_out_packet = None
+        self._current_out_packet_mutex.release()
+
+        self._msgtime_mutex.acquire()
+        self._last_msg_in = time.time()
+        self._last_msg_out = time.time()
+        self._msgtime_mutex.release()
+
+        self._ping_t = 0
+        self._state_mutex.acquire()
+        self._state = mqtt_cs_new
+        self._state_mutex.release()
+        if self._ssl:
+            self._ssl.close()
+            self._ssl = None
+            self._sock = None
+        elif self._sock:
+            self._sock.close()
+            self._sock = None
+
+        # Put messages in progress in a valid state.
+        self._messages_reconnect_reset()
+
+        try:
+            below_required_ver = (
+                (sys.version_info[0] == 2 and sys.version_info[1] < 7)
+                or (sys.version_info[0] == 3 and sys.version_info[1] < 2)
+            )
+            if below_required_ver:
+                self._sock = socket.create_connection((self._host, self._port))
+            else:
+                self._sock = socket.create_connection(
+                    (self._host, self._port), source_address=(self._bind_address, 0))
+        except socket.error as err:
+            if err.errno != errno.EINPROGRESS and err.errno != errno.EWOULDBLOCK and err.errno != EAGAIN:
+                raise
+
+        if self._tls_ca_certs is not None:
+            self._ssl = ssl.wrap_socket(
+                self._sock,
+                certfile=self._tls_certfile,
+                keyfile=self._tls_keyfile,
+                ca_certs=self._tls_ca_certs,
+                cert_reqs=self._tls_cert_reqs,
+                ssl_version=self._tls_version,
+                ciphers=self._tls_ciphers)
+
+            if self._tls_insecure is False:
+                if sys.version_info[0] < 3 or (sys.version_info[0] == 3 and sys.version_info[1] < 2):
+                    self._tls_match_hostname()
+                else:
+                    ssl.match_hostname(self._ssl.getpeercert(), self._host)
+
+        self._sock.setblocking(0)
+
+        return self._send_connect(self._keepalive, self._clean_session)
