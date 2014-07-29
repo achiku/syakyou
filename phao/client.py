@@ -781,3 +781,83 @@ class Client(object):
                 return rc
         
         return self.loop_misc()
+
+    def publish(self, topic, payload=None, qos=0, retain=False):
+        """Publish a message on a topic.
+
+        This causes a message to be sent to the broker and subsequently from
+        the broker to any clients subscribing to matching topics.
+
+        topic: The topic that the message should be published on.
+        payload: The actual message to send. If not given, or set to None a
+        zero length message will be used. Passing an int or float will result
+        in the payload being converted to a string representing that number. If
+        you wish to send a true int/float, use struct.pack() to create the
+        payload you require.
+        qos: The quality of service level to use.
+        retain: If set to true, the message will be set as the "last known
+        good"/retained message for the topic.
+
+        Returns a tuple(result, mid), where result is MQTT_ERR_SUCCESS to
+        indicate success or MQTT_ERR_NO_CONN if the client is not currently
+        connected. mid is the message ID for the publish request. The mid
+        value can be used to track the publish request by checking against the
+        mid argument in the on_publish() callback if it is defined.
+
+        A ValueError will be raised if topic is None, has zero length or is
+        invalid (contains a wildcard), if qos is not one of 0, 1 or 2, or if
+        the length of the payload is greater than 268435455 bytes."""
+        if topic is None or len(topic) == 0:
+            raise ValueError('Invalid topic.')
+        if qos<0 or qos>2:
+            raise ValueError('Invalid QoS level.')
+        if isinstance(payload, str) or isinstance(payload, bytearray):
+            local_payload = payload
+        elif isinstance(payload, int) or isinstance(payload, float):
+            local_payload = str(payload)
+        elif payload is None:
+            local_payload = None
+        else:
+            raise TypeError('payload must be a string, bytearray, int, float or None')
+
+        if local_payload is not None and len(local_payload) > 268435455:
+            raise ValueError('Payload too large.')
+
+        if self._topic_wildcard_len_check(topic) != MQTT_ERR_SUCCESS:
+            raise ValueError('Publish topic cannot contain wildcards.')
+
+        local_mid = self._mid_generate()
+
+        if qos == 0:
+            rc = self._send_publish(local_mid, topic, local_payload, qos, retain, False)
+            return (rc, local_mid)
+        else:
+            message = MQTTMessage()
+            message.timestamp = time.time()
+
+            message.mid = local_mid
+            message.topic = topic
+            if local_payload is None or len(local_payload) == 0:
+                message.payload = None
+            else:
+                message.payload = local_payload
+
+            message.qos = qos
+            message.retain = retain
+            message.dup = False
+
+            self._out_message_mutex.acquire()
+            self._out_messages.append(message)
+            if self._max_inflight_messages == 0 or self._inflight_messages < self._max_inflight_messages:
+                self._inflight_messages = self._inflight_messages+1
+                if qos == 1:
+                    message.state = mqtt_ms_wait_puback
+                elif qos == 2:
+                    message.state = mqtt_ms_wait_pubrec
+                self._out_message_mutex.release()
+
+                rc = self._send_publish(
+                    message.mid, message.topic, message.payload, message.qos, message.retain, message.dup)
+                return (rc, local_mid)
+            self._out_message_mutex.release()
+            return (MQTT_ERR_SUCCESS, local_mid)
