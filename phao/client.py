@@ -861,3 +861,26 @@ class Client(object):
                 return (rc, local_mid)
             self._out_message_mutex.release()
             return (MQTT_ERR_SUCCESS, local_mid)
+
+    def username_pw_set(self, username, password=None):
+        """Set a username and optionally a password for broker authentication.
+
+        Must be called before connect() to have any effect.
+        Requires a broker that supports MQTT v3.1.
+
+        username: The username to authenticate with. Need to have no relationship to the client id.
+        password: The password to authenticate with. Optional, set to None if not required.
+        """
+        self._username = username.encode('utf-8')
+        self._password = password
+
+    def disconnect(self):
+        """Disconnect a connected client from the broker."""
+        self._state_mutex.acquire()
+        self._state = mqtt_cs_disconnecting
+        self._state_mutex.release()
+
+        if self._sock is None and self._ssl is None:
+            return MQTT_ERR_NO_CONN
+
+        return self._send_disconnect()
