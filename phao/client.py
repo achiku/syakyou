@@ -884,3 +884,78 @@ class Client(object):
             return MQTT_ERR_NO_CONN
 
         return self._send_disconnect()
+
+    def subscribe(self, topic, qos=0):
+        """Subscribe the client to one or more topics.
+
+        This function may be called in three different ways:
+
+        Simple string and integer
+        -------------------------
+        e.g. subscribe("my/topic", 2)
+        
+        topic: A string specifying the subscription topic to subscribe to.
+        qos: The desired quality of service level for the subscription.
+            Defaults to 0.
+
+        String and integer tuples
+        -------------------------
+        e.g. subscribe(("my/topic", 1))
+
+        topic: A tuple of (topic, qos). Both topic and qos must be present in
+                the tuple.
+        qos: Not used.
+        
+        List of string and integer tuples
+        ---------------------------------
+        e.g. subscribe([("my/topic", 0), ("another/topic", 2)])
+
+        This allows multiple topic subscriptions in a single SUBSCRIPTION
+        command, which is more efficient than using multiple calls to
+        subscribe().
+
+        topic: A list of tuple of format (topic, qos). Both topic and qos must
+                be present in all of the tuples.
+        qos: Not used.
+
+        The function returns a tuple (result, mid), where result is
+        MQTT_ERR_SUCCESS to indicate success or (MQTT_ERR_NO_CONN, None) if the
+        client is not currently connected. mid is the message ID for the
+        subscribe request. The mid value can be used to track the subscribe
+        request by checking against the mid argument in the on_subscribe()
+        callback if it is defined.
+
+        Raises a ValueError if qos is not 0, 1 or 2, or if topic is None or has
+        zero string length, or if topic is not a string, tuple or list.
+        """
+        topic_qos_list = None
+        if isinstance(topic, str):
+            if qos<0 or qos>2:
+                raise ValueError('Invalid QoS level.')
+            if topic is None or len(topic) == 0:
+                raise ValueError('Invalid topic.')
+            topic_qos_list = [(topic.encode('utf-8'), qos)]
+        elif isinstance(topic, tuple):
+            if topic[1]<0 or topic[1]>2:
+                raise ValueError('Invalid QoS level')
+            if topic[0] is None or len(topic[0]) == 0 or not isinstance(topic[0], str):
+                raise ValueError('Invalid QoS level')
+            topic_qos_list = [(topic[0].encode('utf-8'), topic[1])]
+        elif isinstance(topic, list):
+            topic_qos_list = []
+            for t in topic:
+                if t[1]<0 or t[1]>2:
+                    raise ValueError('Invalid QoS level.')
+                if t[0] is None or len(t[0] == 0 or not isinstance(t[0], str)):
+                    raise ValueError('Invalid topic.')
+                topic_qos_list.append((t[0].encode('utf-8'), t[1]))
+
+        if topic_qos_list is None:
+            raise ValueError("No topic specified, or incorrect topic type.")
+
+        if self._sock is None and self._ssl is None:
+            return (MQTT_ERR_NO_CONN, None)
+
+        return self._send_subscribe(False, topic_qos_list)
+
+
