@@ -958,4 +958,40 @@ class Client(object):
 
         return self._send_subscribe(False, topic_qos_list)
 
+    def unsubscribe(self, topic):
+        """Unsubscribe the client from one or more topics.
 
+        topic: A single string, or list of strings that are the subscription
+               topics to unsubscribe from.
+
+        Returns a tupel (result, mid), where result is MQTT_ERR_SUCCESS
+        to indicate success or (MQTT_ERR_NO_CON, None) if the client is not
+        currently connected.
+        mid is the message ID for the unsubscribe request. The mid value can be
+        used to track the unsubscribe request by checking against the mid
+        argument in the on_unsubscribe() callback if it is defined.
+
+        Raises a ValueError if topic is None or has zero string length, or is
+        not a string or list.
+        """
+        topic_list = None
+        if topic is None:
+            raise ValueError('Invalid topic.')
+        if isinstance(topic, str):
+            if len(topic) == 0:
+                raise ValueError('Invalid topic.')
+            topic_list = [topic.encode('utf-8')]
+        elif isinstance(topic, list):
+            topic_list = []
+            for t in topic:
+                if len(t) == 0 or not isinstance(t, str):
+                    raise ValueError('Invalid topic.')
+                topic_list.append(t.encode('utf-8'))
+
+        if topic_list is None:
+            raise ValueError("No topic specified, or incorrect topic type.")
+
+        if self._sock is None and self._ssl is None:
+            return (MQTT_ERR_NO_CONN, None)
+        
+        return self._send_unsubscribe(False, topic_list)
