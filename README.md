@@ -11,6 +11,7 @@ It has been alway difficult to start and keep motivation for my own new project,
 Compared to above activities, syakyou seems much easier to keep doing on a daily basis.
 
 
-- phao-mqtt client module  (2014/07/20 - present)
-- Luigi task module  (2014/07/14 - 2014/07/20)
+- Go By Example (2014/08/16 - present)
+- phao-mqtt client module (2014/07/20 - present)
+- Luigi task module (2014/07/14 - 2014/07/20)
 - Django http module (2014/07/01 - 2014/07/14)
