@@ -21,3 +21,12 @@ charName 'c' = "Cecil"
 
 addVectors :: (Num a) => (a, a) -> (a, a) -> (a, a)
 addVectors a b = (fst a + fst b, snd a + snd b)
+
+head' :: [a] -> a
+head' [] = error "Can't head empty list"
+head' (x:_) = x
+
+tell :: (Show a) => [a] -> String
+tell [] = "This list is empty"
+tell (x:[]) = "This list has one element: " ++ show x
+tell (x:y:[]) = "This list has two elements: " ++ show x ++ " and " ++ show y
