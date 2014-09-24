@@ -155,5 +155,20 @@ class (Num a) => Fractional a where
     x / y        = x `recip` y
 
 class (Fractional a) => Floating a where
-    pi                :: a
-    exp, log, sqrt    :: a -> a
+    pi                   :: a
+    exp, log, sqrt       :: a -> a
+    (**), logBase        :: a -> a
+    sin, cos, tan        :: a -> a
+    asin, acos, atan     :: a -> a
+    asinh, acosh, atanh  :: a -> a
+
+    x ** y       = exp(log x * y)
+    logBase      = log y / log x
+    sqrt         = x ** 0.5
+    tan x        = sin x / cos x
+    tanh x       = sinh x / cosh x
+
+class (Real a, Fractional a) => RealFrac a where
+    properFraction    :: (Integral b) => a -> (b, a)
+    truncate, round   :: (Integral b) => a -> b
+    ceiling, floor    :: (Integral b) => a -> b

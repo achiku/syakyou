@@ -51,5 +51,6 @@ filter' p (x:xs)
     | p x        = x : filter p xs
     | otherwise  = filter p xs
 
--- numLogChain :: Int
--- numLogChain = length (filter (\xs -> length xs > 15) (map chain [1..100]))
+largetstDivisible :: (Integral a) => a
+largetstDivisible = head (filter p [100000, 99999..])
+    where p x = x `mod` 3829 == 0
