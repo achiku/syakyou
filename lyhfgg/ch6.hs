@@ -67,3 +67,18 @@ numLongChain = length (filter isLong (map chain [1..100]))
 
 numLongChain' :: Int
 numLongChain' = length (filter (\xs -> length xs > 15) (map chain [1..100]))
+
+addThree :: (Num a) => a -> a -> a -> a
+addThree x y z = x + y + z
+
+addThree' :: (Num a) => a -> a -> a -> a
+addThree' = \x -> \y -> \z -> x + y + z
+
+flip'' :: (a -> b -> c) -> b -> a -> c
+flip'' f = \x y -> f y x
+
+sum' :: (Num a) => [a] -> a
+sum' xs = foldl (\acc x -> acc + x) 0 xs
+
+sum'' :: (Num a) => [a] -> a
+sum'' = foldl (+) 0
