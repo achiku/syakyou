@@ -89,3 +89,8 @@ elem' y ys = foldl (\acc x -> if x == y then True else acc) False ys
 mapr' :: (a -> b) -> [a] -> [b]
 mapr' f xs = foldr (\x acc -> f x : acc) [] xs
 
+($) :: (a -> b) -> a -> b
+f $ x = f x
+
+(.) :: (b ->  c) -> (a -> b) -> a -> c
+f . g = \x -> f (g x)
