@@ -1,3 +1,6 @@
+import qualified Data.Map as Map 
+
+
 data Point = Point Float Float deriving (Show)
 
 data Shape = 
@@ -46,8 +49,8 @@ scalarMult :: (Num t) => Vector t -> Vector t -> t
 
 
 type PhoneNumber = String
-type PhoneName = String
-type PhoneBook = [(PhoneName, PhoneNumber)]
+type UserName = String
+type PhoneBook = [(UserName, PhoneNumber)]
 
 phoneBook =
     [("betty","555-2938")
@@ -57,3 +60,21 @@ phoneBook =
     ,("wendy","939-8282")
     ,("penny","853-2492")
     ]
+
+inPhoneBook :: UserName -> PhoneNumber -> PhoneBook -> Bool
+inPhoneBook name number pbook = (name, number) `elem` pbook
+
+type AssocList k v = [(k, v)]
+
+
+data LockerState = Taken | Free deriving(Show, Eq)
+type Code = String
+type LockerMap = Map.Map Int (LockerState, Code)
+
+lockerLookup :: Int -> LockerMap -> Either String Code
+lockerLookup lockerNumber map =
+    case Map.lookup lockerNumber map of
+        Nothing -> Left $ "Locker number " ++ lockerNumber ++ " doesn't exist."
+        Just (state, code) -> if state /= Taken
+            then Right code
+            else Left $ "Locker " ++ show lockerNumber ++ " is already taken!"
