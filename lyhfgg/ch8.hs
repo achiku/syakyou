@@ -129,3 +129,14 @@ instance Show TrafficLight where
     show Red = "Red light"
     show Green = "Green light"
     show Yellow = "Yellow light"
+
+class AEq a where
+    (==) :: a -> a -> Bool  
+    (/=) :: a -> a -> Bool  
+    x == y = not (x /= y)  
+    x /= y = not (x == y)   
+
+instance (AEq m) => AEq (Maybe m) where
+    Just x == Just y = x == y
+    Nothing == Nothing = True
+    _ == _ = False
