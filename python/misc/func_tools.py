@@ -11,9 +11,9 @@ def deco(f):
 
 
 @deco
-def add(x, n):
+def add(x, n, y):
     ''' add two number '''
-    return x + n
+    return x + n + y
 
 
 if __name__ == '__main__':
@@ -21,4 +21,4 @@ if __name__ == '__main__':
         add_ten_and = partial(add, 10)
         print add_ten_and.func.__doc__
         print add_ten_and.args, add_ten_and.keywords
-        print 'Parameter->{}, Result->{}'.format(i, add_ten_and(i))
+        print 'Parameter->{}, Result->{}'.format(i, add_ten_and(i, 10))
