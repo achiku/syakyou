@@ -1,6 +1,4 @@
-main = do
-    contents <- getContents
-    putStr (shortLinesOnly contents)
+main = interact shortLinesOnly
 
 shortLinesOnly :: String -> String
 shortLinesOnly input =
