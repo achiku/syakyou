@@ -129,6 +129,7 @@ if sys.version_info[0] < 3:
 else:
     sockpair_data = b"0"
 
+
 def error_string(mqtt_errno):
     """Return the error string associated with an mqtt error number."""
     if mqtt_errno == MQTT_ERR_SUCCESS:
@@ -500,7 +501,7 @@ class Client(object):
         """
         if HAVE_SSL is False:
             raise ValueError('This platform has no SSL/TLS')
-        
+
         if sys.version < '2.7':
             raise ValueError('Python 2.7 is the minimum supported version for TLS.')
 
@@ -809,7 +810,7 @@ class Client(object):
         the length of the payload is greater than 268435455 bytes."""
         if topic is None or len(topic) == 0:
             raise ValueError('Invalid topic.')
-        if qos<0 or qos>2:
+        if qos < 0 or qos > 2:
             raise ValueError('Invalid QoS level.')
         if isinstance(payload, str) or isinstance(payload, bytearray):
             local_payload = payload
@@ -993,5 +994,5 @@ class Client(object):
 
         if self._sock is None and self._ssl is None:
             return (MQTT_ERR_NO_CONN, None)
-        
+
         return self._send_unsubscribe(False, topic_list)
