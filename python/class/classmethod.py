@@ -21,19 +21,21 @@ class Person(object):
     @staticmethod
     def say_hello_to(name):
         print 'Hello, {}!'.format(name)
+        # print 'by the way, this is error: {}'.format(cls.num_instances)
+        # print 'this is also error: {}'.format(num_instances)
 
 
 if __name__ == '__main__':
     achiku = Person('achiku')
     achiku.introduce_yourself()
-    print Person.get_num_instances()
-    print Person.say_hello_to('world')
+    print "# of instances: {}".format(Person.get_num_instances())
+    Person.say_hello_to('world')
     print achiku.reverse_name
 
     print '=' * 10
 
     moqada = Person('moqada')
     moqada.introduce_yourself()
-    print Person.get_num_instances()
-    print Person.say_hello_to(achiku.name)
+    print "# of instances: {}".format(Person.get_num_instances())
+    Person.say_hello_to(achiku.name)
     print moqada.reverse_name
