@@ -9,4 +9,4 @@ threeCoins gen =
 
 main = do
     let games = [threeCoins (mkStdGen x) | x <- [1..10]]
-    putStr $ unlines games
+    putStr $ show games
