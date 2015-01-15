@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+
 class Person(object):
     num_instances = 0
 
@@ -17,6 +18,8 @@ class Person(object):
     @classmethod
     def get_num_instances(cls):
         return cls.num_instances
+        # classmethod can access class scope data
+        # staticmethod can't access class/instance scope data
 
     @staticmethod
     def say_hello_to(name):
@@ -30,7 +33,7 @@ if __name__ == '__main__':
     achiku.introduce_yourself()
     print "# of instances: {}".format(Person.get_num_instances())
     Person.say_hello_to('world')
-    print achiku.reverse_name
+    print "Reverse name: {}".format(achiku.reverse_name)
 
     print '=' * 10
 
@@ -38,4 +41,4 @@ if __name__ == '__main__':
     moqada.introduce_yourself()
     print "# of instances: {}".format(Person.get_num_instances())
     Person.say_hello_to(achiku.name)
-    print moqada.reverse_name
+    print "Reverse name: {}".format(moqada.reverse_name)
