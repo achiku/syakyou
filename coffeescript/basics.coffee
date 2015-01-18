@@ -59,3 +59,16 @@ square = (x) ->
 console.log(square 7)
 
 console.log(square sum(1, 2))
+
+
+# class
+class Person
+  constructor: (@name, @age) ->
+
+  hello: () =>
+    console.log "Hello! I'm #{@name}."
+
+achiku = new Person 'achiku', 29
+achiku.hello()
+console.log achiku.name, achiku.age
+
