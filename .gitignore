@@ -55,3 +55,6 @@ docs/_build/
 # Haskell
 *.o
 *.hi
+
+
+node_modules

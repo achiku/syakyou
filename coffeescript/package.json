@@ -1,0 +1,23 @@
+{
+  "name": "coffeescript-practice",
+  "version": "0.0.0",
+  "description": "coffeescript-practice",
+  "main": "src/index.coffee",
+  "scripts": {
+    "test": "cake test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/achiku/syakyou.git"
+  },
+  "author": "achiku",
+  "license": "MIT",
+  "devDependencies": {
+    "chai": "^1.10.0",
+    "coffee-script": "^1.8.0",
+    "mocha": "^2.1.0"
+  },
+  "dependencies": {
+    "promise": "^6.1.0"
+  }
+}
