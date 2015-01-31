@@ -1,7 +1,17 @@
 package main
 
-import "net/http"
+import (
+	"github.com/russross/blackfriday"
+	"net/http"
+)
+
+func GenerateMarkdown(rw http.ResponseWriter, r *http.Request) {
+	markdown := blackfriday.MarkdownCommon([]byte(r.FormValue("body")))
+	rw.Write(markdown)
+}
 
 func main() {
-	http.ListenAndServe(":8080", http.FileServer(http.Dir(".")))
+	http.HandleFunc("/markdown", GenerateMarkdown)
+	http.Handle("/", http.FileServer(http.Dir("public")))
+	http.ListenAndServe(":8080", nil)
 }
