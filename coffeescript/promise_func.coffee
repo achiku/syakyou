@@ -7,6 +7,8 @@ promiseMultiply = (x, y) ->
       resolve(x * y)
     ,Math.floor(Math.random() * 1000)
 
+promiseMultiply(3, 2)
+  .then (val) -> console.log "mul: #{val}"
 
 promiseAdd = (x, y) ->
   return new Promise (resolve, reject) ->
@@ -14,6 +16,14 @@ promiseAdd = (x, y) ->
       resolve(x + y)
     ,Math.floor(Math.random() * 1000)
 
+promiseAdd(3, 2)
+  .then (val) -> console.log "add: #{val}"
+
+
+promiseAdd(10, 2)
+  .then (val) -> promiseMultiply(val, 2)
+  .then (val) -> promiseMultiply(val, 3)
+  .then (val) -> console.log "add and mul and mul: #{val}"
 
 multiplyArray = []
 for i in [1..10]
