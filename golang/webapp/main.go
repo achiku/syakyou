@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
 	"github.com/russross/blackfriday"
+	"log"
 	"net/http"
 )
 
@@ -44,6 +46,18 @@ func PostDeleteHandler(rw http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(rw, "post delete:", id)
 }
 
+func MyMiddleWare(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	log.Println("Logging on the way there...")
+	if r.URL.Query().Get("password") == "pass" {
+		log.Println("authorized...")
+		next(rw, r)
+	} else {
+		log.Println("failed to authorize request...")
+		http.Error(rw, "Not Authorized", 401)
+	}
+	log.Println("Logging on the way back...")
+}
+
 func main() {
 	r := mux.NewRouter().StrictSlash(false)
 	r.HandleFunc("/", HomeHandler)
@@ -60,5 +74,11 @@ func main() {
 	post.Methods("GET").HandlerFunc(PostShowHandler)
 	post.Methods("PUT", "POST").HandlerFunc(PostUpdateHandler)
 	post.Methods("DELETE").HandlerFunc(PostUpdateHandler)
-	http.ListenAndServe(":8080", nil)
+
+	n := negroni.New(
+		negroni.NewRecovery(),
+		negroni.HandlerFunc(MyMiddleWare),
+		negroni.NewStatic(http.Dir("public")),
+	)
+	n.Run(":8080")
 }
