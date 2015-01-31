@@ -58,6 +58,10 @@ func MyMiddleWare(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc
 	log.Println("Logging on the way back...")
 }
 
+func RequestLoggerMiddleWare(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	log.Println("path:", r.URL.Path, " query:", r.URL.Query())
+}
+
 func main() {
 	r := mux.NewRouter().StrictSlash(false)
 	r.HandleFunc("/", HomeHandler)
@@ -78,6 +82,7 @@ func main() {
 	n := negroni.New(
 		negroni.NewRecovery(),
 		negroni.HandlerFunc(MyMiddleWare),
+		negroni.HandlerFunc(RequestLoggerMiddleWare),
 		negroni.NewStatic(http.Dir("public")),
 	)
 	n.Run(":8080")
