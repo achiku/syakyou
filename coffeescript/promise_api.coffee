@@ -25,8 +25,8 @@ getResources()
     console.log 'getResources done'
     return values
   .then (values) ->
-    list = []
-    for val in values
-      list.push getAdditionalResource(val)
+    list = (getAdditionalResource(val) for val in values)
     Promise.all(list)
-      .then (values) ->console.log values
+      .then (values) ->
+        for val in values
+          console.log val
