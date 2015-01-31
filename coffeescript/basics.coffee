@@ -1,3 +1,8 @@
+# string
+line = "test line\n"
+line += "another line\n"
+console.log line
+
 
 # array operation
 li = ['spam', 'egg', 'ham']
