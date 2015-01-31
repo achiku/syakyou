@@ -12,8 +12,13 @@ for i in [1..10]
   array.push(asyncHello(i))
 
 console.log "All sync executions"
+line = []
 Promise.all(array).then(
   (values) ->
     for i in values
-      console.log i
+      line.push(i)
+).then(
+  (values) ->
+    console.log line
 )
+
