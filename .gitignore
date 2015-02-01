@@ -60,3 +60,5 @@ docs/_build/
 node_modules
 
 tmp
+
+sampledata
