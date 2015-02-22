@@ -1,0 +1,28 @@
+{
+  "name": "sample-react-jade",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "devDependencies": {
+    "browser-sync": "^2.0.1",
+    "coffee-script": "^1.9.0",
+    "gulp": "^3.8.11",
+    "gulp-cjsx": "^2.0.0",
+    "gulp-load-plugins": "^0.8.0",
+    "gulp-util": "^3.0.3",
+    "run-sequence": "^1.0.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "serve": "gulp server",
+    "build": "gulp build"
+  },
+  "author": "achiku",
+  "license": "ISC",
+  "dependencies": {
+    "lodash": "^3.3.0",
+    "react": "^0.12.2",
+    "react-jade": "^2.3.0"
+  }
+}
