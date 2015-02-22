@@ -29,6 +29,11 @@ console.log numbers[3..-2]
 console.log numbers[-2..]
 console.log numbers[..]
 
+numbers.pop()
+console.log numbers
+
+numbers.splice(1, 1)
+console.log numbers
 
 # objects operation
 people = [
