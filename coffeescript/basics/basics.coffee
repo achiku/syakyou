@@ -34,6 +34,8 @@ console.log numbers
 
 numbers.splice(1, 1)
 console.log numbers
+numbers.forEach (i, idx) ->
+  console.log i, idx
 
 # objects operation
 people = [
