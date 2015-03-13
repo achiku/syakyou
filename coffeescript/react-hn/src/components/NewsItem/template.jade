@@ -1,0 +1,4 @@
+.newsItem
+  a.newsItem-titleLink(href=props.item.url)= props.item.title
+  span.newsItem-domain= getDomain()
+  .newsItem-subtext= props.item.score
