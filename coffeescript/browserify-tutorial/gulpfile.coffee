@@ -3,6 +3,7 @@
 gulp = require 'gulp'
 $ = (require 'gulp-load-plugins')()
 browserify = require 'browserify'
+watchify = require 'watchify'
 transform = require 'vinyl-transform'
 
 srcPath = 'src'
@@ -27,15 +28,42 @@ gulp.task 'coffee', ->
   gulp
     .src paths.mainCoffee
     .pipe browserified
-    .pipe $.rename
-      extname: '.js'
+    .pipe $.rename extname: '.js'
     .pipe gulp.dest "#{buildPath}/js"
+
+
+gulp.task 'browserify', ->
+  bundler = (filename, isWatch) ->
+    options =
+      debug: true
+      cache: {}
+      packageCache: {}
+      fullPaths: true
+      extensions: ['.coffee', '.js', '.jade']
+
+    if isWatch
+      watchify browserify(filename, options)
+        .on 'update', bundle
+    else
+      browserify(filename, options)
+  
+  bundle = (filename) ->
+    return transform (filename) ->
+      console.log 'compiling', filename
+      bundler(filename, true).bundle()
+
+  gulp
+    .src paths.mainCoffee
+    .pipe bundle()
+    .pipe $.rename extname: '.js'
+    .pipe gulp.dest "#{buildPath}/js"
+
 
 
 gulp.task 'jade', ->
   gulp
     .src paths.mainJade
-    .pipe $.jade()
+    .pipe $.jade pretty: true
     .pipe gulp.dest "#{buildPath}"
 
 
