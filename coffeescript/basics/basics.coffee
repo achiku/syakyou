@@ -47,8 +47,9 @@ people = [
 for p in people
   console.log "#{p.name} is #{p.age} years old."
 
-for key, val of people[0]
-  console.log key, val
+for person in people
+  for key, val of person
+    console.log key, val
 
 kids =
   brother:
@@ -83,4 +84,3 @@ class Person
 achiku = new Person 'achiku', 29
 achiku.hello()
 console.log achiku.name, achiku.age
-
