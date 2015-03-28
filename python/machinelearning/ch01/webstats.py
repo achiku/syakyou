@@ -104,16 +104,66 @@ def display_model_with_inflection_point():
     print "Error: {}".format(sum([e for e in errors]))
 
 
-def display_model_with_future_plots():
+def display_model_with_first_half():
+    print "Train n models with first half of data set"
     x, y = get_cleaned_data()
     display_raw_data(x, y)
     xa, ya, xb, yb = get_inflection_data(x, y)
 
-    errors = ListTable()
-    errors.append(['d', 'set a', 'set b'])
+    legends = []
+    errors = []
     for d in [1, 2, 3, 10, 100]:
-        fp, residuals, rank, sv, rcond = sp.polyfit(x, y, d, full=True)
-        f = sp.poly1d(fp)
-        errors.append([d, error(f, xa, ya), error(f, xb, yb)])
+        f = sp.poly1d(sp.polyfit(xa, ya, d))
+        fx = sp.linspace(0 * 7 * 24, 6 * 7 * 24, 100)
+        plt.plot(fx, f(fx), linewidth=2)
+        plt.ylim(ymin=0)
+        plt.xlim(xmin=0)
+        errors.append(error(f, xa, ya))
+        legends.append("d={}".format(d))
 
+    plt.legend(legends, loc="upper left")
     display(errors)
+
+
+def display_model_with_second_half():
+    print "Train n models with second half of data set"
+    x, y = get_cleaned_data()
+    display_raw_data(x, y)
+    xa, ya, xb, yb = get_inflection_data(x, y)
+
+    legends = []
+    errors = []
+    for d in [1, 2, 3, 10, 100]:
+        f = sp.poly1d(sp.polyfit(xb, yb, d))
+        fx = sp.linspace(0 * 7 * 24, 6 * 7 * 24, 100)
+        plt.plot(fx, f(fx), linewidth=2)
+        plt.ylim(ymin=0)
+        plt.xlim(xmin=0)
+        errors.append(error(f, xa, ya))
+        legends.append("d={}".format(d))
+
+    plt.legend(legends, loc="upper left")
+    display(errors)
+
+
+def display_cross_validateion_model():
+    x, y = get_cleaned_data()
+    display_raw_data(x, y)
+    xa, ya, xb, yb = get_inflection_data(x, y)
+
+    frac = 0.3
+    split_idx = int(frac * len(xb))
+    shuffled = sp.random.permutation(list(range(len(xb))))
+    print shuffled[:5]
+
+    test_dataset = sorted(shuffled[:split_idx])
+    training_dataset = sorted(shuffled[split_idx:])
+
+    funcs = []
+    for d in [1, 2, 3, 10, 100]:
+        name = 'fn{}'.format(d)
+        f = sp.poly1d(sp.polyfit(xb[training_dataset], yb[training_dataset], d))
+        funcs.append((name, f))
+
+    for name, f in funcs:
+        print "Error d=%i: %f" % (f.order, error(f, xb[test_dataset], yb[test_dataset]))
