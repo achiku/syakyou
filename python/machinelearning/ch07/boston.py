@@ -2,6 +2,7 @@
 import numpy as np
 from sklearn.datasets import load_boston
 from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import ElasticNet
 from sklearn.cross_validation import KFold
 from matplotlib import pyplot as plt
 
@@ -115,6 +116,23 @@ def sklean_linear_model_cross_validation():
     for train, test in kf:
         lr.fit(x[train], y[train])
         p = map(lr.predict, x[test])
+        e = p - y[test]
+        err += np.sum(e * e)
+    rmse_10cv = np.sqrt(err / len(x))
+    print "RMSE on 10-fold CV: {}".format(rmse_10cv)
+
+
+def sklean_linear_model_elastic_net():
+    en = ElasticNet(fit_intercept=True, alpha=0.5)
+    boston = load_boston()
+    x = boston.data
+    y = boston.target
+
+    kf = KFold(len(x), n_folds=10)
+    err = 0
+    for train, test in kf:
+        en.fit(x[train], y[train])
+        p = map(en.predict, x[test])
         e = p - y[test]
         err += np.sum(e * e)
     rmse_10cv = np.sqrt(err / len(x))
