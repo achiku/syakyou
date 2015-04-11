@@ -2,13 +2,14 @@
 import numpy as np
 from sklearn.datasets import load_boston
 from sklearn.linear_model import LinearRegression
+from sklearn.cross_validation import KFold
 from matplotlib import pyplot as plt
 
 
 def base_stats():
     boston = load_boston()
-    print boston.feature_names
-    print boston.DESCR
+    # print boston.feature_names
+    # print boston.DESCR
 
     x = boston.data
     y = boston.target
@@ -86,3 +87,35 @@ def overview():
         plt.scatter(boston.data[:, feature[0]], boston.target)
         plt.xlabel(feature[1])
     plt.tight_layout()
+
+
+def sklean_linear_model():
+    lr = LinearRegression(fit_intercept=True)
+    boston = load_boston()
+    x = boston.data
+    y = boston.target
+
+    lr.fit(x, y)
+    p = map(lr.predict, x)
+    e = p - y
+
+    total_error = np.sum(e * e)
+    rmse_train = np.sqrt(total_error / len(p))
+    print "RMSE on training: {}".format(rmse_train)
+
+
+def sklean_linear_model_cross_validation():
+    lr = LinearRegression(fit_intercept=True)
+    boston = load_boston()
+    x = boston.data
+    y = boston.target
+
+    kf = KFold(len(x), n_folds=10)
+    err = 0
+    for train, test in kf:
+        lr.fit(x[train], y[train])
+        p = map(lr.predict, x[test])
+        e = p - y[test]
+        err += np.sum(e * e)
+    rmse_10cv = np.sqrt(err / len(x))
+    print "RMSE on 10-fold CV: {}".format(rmse_10cv)
