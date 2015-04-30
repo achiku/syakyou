@@ -1,0 +1,10 @@
+#!/bin/bash
+
+filename=${1}
+num_files=${2}
+ttl_lines=$( wc -l ${filename} | awk '{print $1}' )
+lines_per_file=$(( ${ttl_lines} / ${num_files} + 1))
+
+echo "Total lines: ${ttl_lines}"
+echo "Lines per a file: ${lines_per_file}"
+split -l ${lines_per_file} ${filename}
