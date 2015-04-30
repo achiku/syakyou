@@ -16,9 +16,27 @@ if __name__ == '__main__':
 
     # pick one main set and sets excluding the main set and put them in to list of tuple
     test_data_set = [(sets[idx], [s for i, s in enumerate(sets) if i != idx]) for idx in xrange(len(sets) - 1)]
+
+    print "# Difference"
     for i in test_data_set:
         print "## {} is the main set".format(i[0]['name'])
         for j in i[1]:
             print "({}){} - ({}){} = {}".format(
                 i[0]['name'], i[0]['set'], j['name'], j['set'], i[0]['set'] - j['set']
+            )
+
+    print "# Union"
+    for i in test_data_set:
+        print "## {} is the main set".format(i[0]['name'])
+        for j in i[1]:
+            print "({}){} | ({}){} = {}".format(
+                i[0]['name'], i[0]['set'], j['name'], j['set'], i[0]['set'] | j['set']
+            )
+
+    print "# Intersection"
+    for i in test_data_set:
+        print "## {} is the main set".format(i[0]['name'])
+        for j in i[1]:
+            print "({}){} & ({}){} = {}".format(
+                i[0]['name'], i[0]['set'], j['name'], j['set'], i[0]['set'] & j['set']
             )
