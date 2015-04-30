@@ -10,6 +10,7 @@ if __name__ == '__main__':
         make_named_list('same_elems1', [1, 1, 1]),
         make_named_list('same_elems2', [1]),
         make_named_list('same_elems3', ['test', 'test', 'test']),
+        make_named_list('zero_elems', []),
         make_named_list('diff_elems1', [2, 1, 1]),
         make_named_list('diff_elems2', [1, 1, 2]),
         make_named_list('diff_elems3', [1, 2, 1]),
