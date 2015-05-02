@@ -2,13 +2,20 @@ package main
 
 import "fmt"
 
+type Values map[string]float64
+
 func main() {
 
 	m := make(map[string]int)
+	v := make(Values)
+
+	v["key01"] = 90.10
+	v["key02"] = 110.12
 	m["k1"] = 7
 	m["k2"] = 13
 
 	fmt.Println("map:", m)
+	fmt.Println("map:", v)
 
 	v1 := m["k1"]
 	fmt.Println("v1:", v1)
