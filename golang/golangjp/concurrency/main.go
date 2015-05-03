@@ -15,7 +15,7 @@ func Boring(msg string, c chan string) {
 }
 
 func main() {
-	times := 3
+	times := 10
 	c := make(chan string)
 	go Boring("boring!", c)
 	for i := 0; i < times; i++ {
