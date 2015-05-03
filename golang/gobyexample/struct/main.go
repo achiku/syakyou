@@ -1,21 +1,29 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
-type person struct {
+type Person struct {
 	name string
 	age  int
 }
 
+func (person *Person) hello() string {
+	return "hello, I'm " + person.name + ", and " + strconv.Itoa(person.age) + " years old."
+}
+
 func main() {
-	fmt.Println(person{"Bob", 20})
-	fmt.Println(person{name: "Alice", age: 30})
+	fmt.Println(Person{"Bob", 20})
+	fmt.Println(Person{name: "Alice", age: 30})
 
-	fmt.Println(person{name: "Fred"})
-	fmt.Println(&person{name: "Ann", age: 40})
+	fmt.Println(Person{name: "Fred"})
+	fmt.Println(&Person{name: "Ann", age: 40})
 
-	s := person{name: "Sean", age: 50}
+	s := Person{name: "Sean", age: 50}
 	fmt.Println(s.name)
+	fmt.Println(s.hello())
 
 	/* this is just copying struct data to a variable a */
 	a := s
