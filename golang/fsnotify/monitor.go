@@ -31,6 +31,19 @@ type File struct {
 }
 
 func (f *File) BufferedLineRead() error {
+	s, err := f.Stat()
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
+	f.lastStat = s
+	log.Printf("size: %d", f.lastStat.Size())
+	if f.lastStat.Size() == 0 {
+		f.Seek(0, 0)
+		f.Position = int64(0)
+		log.Print("size becomes 0")
+	}
+
 	for {
 		n, err := io.ReadAtLeast(f, f.ReadBuf, 1)
 		if n == 0 || err == io.EOF {
@@ -39,8 +52,6 @@ func (f *File) BufferedLineRead() error {
 			return err
 		}
 		f.Position += int64(n)
-		// log.Printf("first linebuf: %s\n", string(f.LineBuf))
-		// log.Printf("first readbuf: %s\n", string(f.ReadBuf))
 		sendBuf := make([]byte, 0)
 		if f.ReadBuf[n-1] == '\n' {
 			// f.readBuf is just terminated by '\n'
@@ -63,11 +74,13 @@ func (f *File) BufferedLineRead() error {
 				sendBuf = append(sendBuf, f.ReadBuf[0:blockLen]...)
 				f.LineBuf = make([]byte, n-blockLen-1)
 				copy(f.LineBuf, f.ReadBuf[blockLen+1:n])
-				// log.Printf("copy linebuf: %s\n", string(f.LineBuf))
-				// log.Printf("copy readbuf: %s\n", string(f.ReadBuf))
 			}
 		}
-		log.Printf("terminated linebuf: %s\n", string(sendBuf))
+		log.Printf(
+			"[pos:(%d), size:(%d)]: %s\n",
+			f.Position,
+			f.lastStat.Size(),
+			string(sendBuf))
 	}
 }
 
@@ -137,15 +150,10 @@ func main() {
 				}
 				if event.IsModify() {
 					log.Println("modified")
-					file.BufferedLineRead()
+					err = file.BufferedLineRead()
 					if err != nil {
-						log.Println("nothing to read")
+						log.Printf("%s", err)
 					}
-					log.Printf(
-						"read content: (%s), pos: (%d)",
-						string(file.LineBuf),
-						file.Position,
-					)
 				}
 				if event.IsCreate() {
 					log.Println("created")
