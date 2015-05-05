@@ -1,6 +1,7 @@
 package main
 
 // https://github.com/go-fsnotify/fsnotify/blob/master/example_test.go
+// https://github.com/fujiwara/fluent-agent-hydra
 
 import (
 	"bytes"
