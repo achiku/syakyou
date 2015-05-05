@@ -15,18 +15,11 @@ import (
 )
 
 const Interval = 200 * time.Millisecond
-const ReadBufferSize = 10
+const ReadBufferSize = 2
 const SEEK_TAIL = int64(-1)
 const SEEK_HEAD = int64(0)
 
 var LineSeparator = []byte{'\n'}
-
-type FileStat struct {
-	Tag      string `json:"tag"`
-	File     string `json:"-"`
-	Position int64  `json:"position"`
-	Error    string `json:"error"`
-}
 
 type File struct {
 	*os.File
@@ -34,7 +27,6 @@ type File struct {
 	ReadBuf  []byte
 	LineBuf  []byte
 	Position int64
-	FileStat *FileStat
 	lastStat os.FileInfo
 }
 
@@ -47,6 +39,8 @@ func (f *File) BufferedLineRead() error {
 			return err
 		}
 		f.Position += int64(n)
+		// log.Printf("first linebuf: %s\n", string(f.LineBuf))
+		// log.Printf("first readbuf: %s\n", string(f.ReadBuf))
 		sendBuf := make([]byte, 0)
 		if f.ReadBuf[n-1] == '\n' {
 			// f.readBuf is just terminated by '\n'
@@ -69,8 +63,11 @@ func (f *File) BufferedLineRead() error {
 				sendBuf = append(sendBuf, f.ReadBuf[0:blockLen]...)
 				f.LineBuf = make([]byte, n-blockLen-1)
 				copy(f.LineBuf, f.ReadBuf[blockLen+1:n])
+				// log.Printf("copy linebuf: %s\n", string(f.LineBuf))
+				// log.Printf("copy readbuf: %s\n", string(f.ReadBuf))
 			}
 		}
+		log.Printf("terminated linebuf: %s\n", string(sendBuf))
 	}
 }
 
@@ -91,7 +88,6 @@ func NewTargetFile(path string) (*File, error) {
 		make([]byte, ReadBufferSize),
 		make([]byte, 0),
 		0,
-		&FileStat{},
 		stat,
 	}
 
@@ -145,8 +141,11 @@ func main() {
 					if err != nil {
 						log.Println("nothing to read")
 					}
-					log.Printf("read content: %s", string(file.LineBuf))
-					log.Printf("read content: %s", string(file.ReadBuf))
+					log.Printf(
+						"read content: (%s), pos: (%d)",
+						string(file.LineBuf),
+						file.Position,
+					)
 				}
 				if event.IsCreate() {
 					log.Println("created")
