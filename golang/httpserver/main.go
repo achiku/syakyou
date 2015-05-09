@@ -16,7 +16,7 @@ type Todo struct {
 type Todos []Todo
 
 func IndexHandler(rw http.ResponseWriter, r *http.Request) {
-	rw.Header().Set("Content-Type", "text/plain")
+	rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	fmt.Fprintln(rw, "index")
 }
 
@@ -37,6 +37,7 @@ func main() {
 
 	n := negroni.New(
 		negroni.NewRecovery(),
+		negroni.NewLogger(),
 	)
 	n.UseHandler(router)
 	n.Run(":8080")
