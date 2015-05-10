@@ -8,11 +8,11 @@ import (
 	"time"
 )
 
-type Todo struct {
+type Message struct {
 	Name      string `json:"name"`
 	Completed bool   `json:"completed"`
 }
-type Todos []Todo
+type Messages []Message
 
 func main() {
 	client := http.Client{
@@ -41,15 +41,17 @@ func main() {
 		return
 	}
 
-	var todos Todos
-	err = json.Unmarshal([]byte(bodyJson), &todos)
+	var messages Messages
+	err = json.Unmarshal([]byte(bodyJson), &messages)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	fmt.Println(todos)
-	for _, t := range todos {
+	fmt.Println(messages)
+	for _, t := range messages {
 		fmt.Println(t)
+		fmt.Println(t.Name)
+		fmt.Println(t.Completed)
 	}
 }

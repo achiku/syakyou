@@ -9,11 +9,11 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type Todo struct {
+type Message struct {
 	Name      string `json:"name"`
 	Completed bool   `json:"completed"`
 }
-type Todos []Todo
+type Messages []Message
 
 func IndexHandler(rw http.ResponseWriter, r *http.Request) {
 	rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
@@ -21,9 +21,10 @@ func IndexHandler(rw http.ResponseWriter, r *http.Request) {
 }
 
 func TodoIndexHandler(rw http.ResponseWriter, r *http.Request) {
-	todos := Todos{
-		Todo{Name: "buy milk", Completed: false},
-		Todo{Name: "pay rent", Completed: false},
+	todos := Messages{
+		Message{Name: "buy milk", Completed: false},
+		Message{Name: "pay rent", Completed: false},
+		Message{Name: "read book", Completed: false},
 	}
 
 	rw.Header().Set("Content-Type", "application/json")
