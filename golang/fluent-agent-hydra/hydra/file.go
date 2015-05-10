@@ -157,6 +157,20 @@ func openFile(path string, startPos int64) (*File, error) {
 	return file, nil
 }
 
+func (f *File) restrict() error {
+	var err error
+	f.lastStat, err = f.Stat()
+	if err != nil {
+		log.Println("[error]", f.Path, "stat failed", err)
+		return err
+	}
+	if size := f.lastStat.Size(); size < f.Position {
+		pos, _ := f.Seek(int64(0), os.SEEK_SET)
+		f.Position = pos
+		log.Println("[info]", f.Path, "was truncated. seeked to", pos)
+	}
+}
+
 func (f *File) UpdateStat() *FileStat {
 	f.FileStat.File = f.Path
 	f.FileStat.Position = f.Position
