@@ -1,9 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
-	"net/http/httputil"
 	"time"
 )
 
@@ -17,7 +18,7 @@ func main() {
 	client := http.Client{
 		Timeout: time.Duration(10) * time.Second,
 	}
-	req, err := http.NewRequest("GET", "http://localhost:8080/", nil)
+	req, err := http.NewRequest("GET", "http://localhost:8080/todo/", nil)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -30,9 +31,25 @@ func main() {
 	}
 	defer resp.Body.Close()
 
-	dumps, err := httputil.DumpResponse(resp, true)
+	for k, v := range resp.Header {
+		fmt.Println(k, v)
+	}
+
+	bodyJson, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
-	fmt.Println(dumps)
+
+	var todos Todos
+	err = json.Unmarshal([]byte(bodyJson), &todos)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println(todos)
+	for _, t := range todos {
+		fmt.Println(t)
+	}
 }
