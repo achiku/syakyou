@@ -3,10 +3,9 @@
 
 def is_consequtive(l):
     """check if list has consequtive integers"""
-    a = sorted([i + 1 for i in l])
-    b = sorted(l)
+    a = [i + 1 for i in l]
     for x in a:
-        if x in b:
+        if x in l:
             return True
     return False
 
