@@ -15,7 +15,7 @@ if __name__ == '__main__':
     ]
 
     # pick one main set and sets excluding the main set and put them in to list of tuple
-    test_data_set = [(sets[idx], [s for i, s in enumerate(sets) if i != idx]) for idx in xrange(len(sets) - 1)]
+    test_data_set = [(sets[idx], [s for i, s in enumerate(sets) if i != idx]) for idx in range(len(sets) - 1)]
 
     print "# Difference"
     for i in test_data_set:
