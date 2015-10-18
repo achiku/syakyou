@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# http://makina-corpus.com/blog/metier/2015/python-http-server-with-the-new-async-await-syntax
 import asyncio
 
 async def slow_operation(n):
