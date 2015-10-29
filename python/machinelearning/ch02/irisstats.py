@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from matplotlib import pyplot as plt
 from sklearn.datasets import load_iris
-import numpy as np
 
 
 def basic_stats():
