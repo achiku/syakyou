@@ -69,3 +69,8 @@ sampledata/
 
 
 *.pdf
+*.Rproj.user
+*.Rproj
+
+.Rhistory
+.RData
