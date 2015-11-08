@@ -2,6 +2,7 @@
 
 
 def puts(arg1, arg2):
+    """just print"""
     print(arg1)
     print(arg2)
 
@@ -43,3 +44,12 @@ if __name__ == '__main__':
 
     inv_d = dict(zip(d.values(), d.keys()))
     print(inv_d)
+
+    my_scores = [1, 2, 3, 4, 5]
+    your_scores = [2, 4, 2, 4, 0]
+    winning_scores = map(
+        lambda pair: max(pair),
+        zip(my_scores, your_scores)
+    )
+    for i, score in enumerate(winning_scores):
+        print("{}: {}".format(i, score))
