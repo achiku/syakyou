@@ -51,5 +51,4 @@ if __name__ == '__main__':
         lambda pair: max(pair),
         zip(my_scores, your_scores)
     )
-    for i, score in enumerate(winning_scores):
-        print("{}: {}".format(i, score))
+    print(list(winning_scores))
