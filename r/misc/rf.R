@@ -12,3 +12,6 @@ X <- iris[, colnames(iris) != "Species"]
 iris.rf <- randomForest(Species~., data=iris[train,], mtry=4)
 iris.pred <- predict(iris.rf, iris[test,])
 table(iris[test,5], iris.pred)
+
+iris.pred <- predict(iris.rf, iris[test,], "prob")
+iris.pred
