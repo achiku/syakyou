@@ -33,8 +33,16 @@ func adaptHandler(h http.Handler) chainHandler {
 	}
 }
 
-func adaptContextHandlerFunc(fn func(ctx *Context, w http.ResponseWriter, r *http.Request)) chainHandler {
+func adaptHandlerFunc(fn func(w http.ResponseWriter, r *http.Request)) chainHandler {
 	return adaptHandler(http.HandlerFunc(fn))
+}
+
+func adaptContextHandlerFunc(fn func(ctx *Context, w http.ResponseWriter, r *http.Request)) chainHandler {
+	return func(ctx *Context) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			fn(ctx, w, r)
+		})
+	}
 }
 
 func (c Chain) Then(chf func(ctx *Context, w http.ResponseWriter, r *http.Request)) HandlerChain {
