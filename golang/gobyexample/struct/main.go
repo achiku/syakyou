@@ -5,6 +5,7 @@ import (
 	"strconv"
 )
 
+// Person struct
 type Person struct {
 	name string
 	age  int
