@@ -76,6 +76,18 @@ func NewPerson(name string, age int) *Person {
 	return p
 }
 
+// DoSomething func type
+type DoSomething func()
+
+// StructA struct
+type StructA struct {
+}
+
+// Operation strategy
+func (a *StructA) Operation(strategy DoSomething) {
+	strategy()
+}
+
 func main() {
 	teamMembers := []*Person{
 		NewPerson("moqada", 30),
@@ -98,4 +110,9 @@ func main() {
 	// animal.greeting() -> this can't be called
 	fmt.Println(animal.Move(10))
 	fmt.Println(animal.Sleep(30))
+
+	structA := &StructA{}
+	structA.Operation(func() {
+		fmt.Println("Operation")
+	})
 }
