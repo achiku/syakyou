@@ -45,4 +45,11 @@ func main() {
 		}
 	}
 	fmt.Println("2d:", twoD)
+
+	var column []string
+	colList := []string{"a", "b", "c"}
+	for _, col := range colList {
+		column = append(column, col)
+	}
+	fmt.Println(column)
 }
