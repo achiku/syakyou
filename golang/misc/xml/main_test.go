@@ -1,0 +1,146 @@
+package main
+
+import (
+	"encoding/xml"
+	"testing"
+)
+
+func TestOmitempty(t *testing.T) {
+	p1 := Person{
+		ID:  1,
+		Age: 33,
+	}
+	p2 := Person{
+		ID: 2,
+		Name: &Name{
+			First: "Ichiro",
+			Last:  "Suzuki",
+		},
+	}
+	ps := []Person{p1, p2}
+	for _, p := range ps {
+		buf, _ := xml.MarshalIndent(p, "", "  ")
+		t.Logf("\n%s", string(buf))
+	}
+}
+
+func TestSOAPEnvelopeMarshal(t *testing.T) {
+	e := SOAPEnvelope{
+		Header: &SOAPHeader{
+			Content: MySOAPHeader{
+				UserID:   "achiku",
+				Password: "pass",
+			},
+		},
+		Body: SOAPBody{
+			Content: Person{
+				ID: 1,
+				Name: &Name{
+					First: "Akira",
+					Last:  "Chiku",
+				},
+				Age: 30,
+			},
+		},
+	}
+	buf, err := xml.MarshalIndent(e, "", "  ")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("\n%s", string(buf))
+}
+
+func TestUnmarshal(t *testing.T) {
+	d1 := []byte(`
+	<person>
+	  <name>
+		<first>Taro</first>
+		<last>Suzuki</last>
+	  </name>
+	  <age>30</age>
+	</person>
+	`)
+	d2 := []byte(`
+	<person>
+	  <age>30</age>
+	</person>
+	`)
+	d3 := []byte(`
+	<person>
+	  <id>3</id>
+	</person>
+	`)
+	docs := [][]byte{d1, d2, d3}
+	for _, d := range docs {
+		p := Person{}
+		xml.Unmarshal(d, &p)
+		t.Logf("%+v", p)
+	}
+}
+
+func TestNoHeaderSOAPEnvelopeMarshal(t *testing.T) {
+	e := SOAPEnvelope{
+		Body: SOAPBody{
+			Content: Person{
+				ID: 1,
+				Name: &Name{
+					First: "Akira",
+					Last:  "Chiku",
+				},
+				Age: 30,
+			},
+		},
+	}
+	buf, err := xml.MarshalIndent(e, "", "  ")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("\n%s", string(buf))
+}
+
+func TestNoHeaderSOAPEnvelopeUnmarshal(t *testing.T) {
+	xmldoc := []byte(`
+    <Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+      <Body xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+        <person>
+          <id>1</id>
+          <name>
+            <first>Akira</first>
+            <last>Chiku</last>
+          </name>
+          <age>30</age>
+        </person>
+      </Body>
+    </Envelope>
+	`)
+	p := new(Person)
+	res := SOAPEnvelope{}
+	res.Body = SOAPBody{Content: p}
+	if err := xml.Unmarshal(xmldoc, &res); err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("%+v", res)
+	t.Logf("%+v", p)
+}
+
+func TestNoEnvelopeSOAPEnvelopeUnmarshal(t *testing.T) {
+	xmldoc := []byte(`
+    <Body xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+      <person>
+        <id>1</id>
+        <name>
+          <first>Akira</first>
+          <last>Chiku</last>
+        </name>
+        <age>30</age>
+      </person>
+    </Body>
+	`)
+	p := new(Person)
+	b := SOAPBody{Content: p}
+	if err := xml.Unmarshal(xmldoc, &b); err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("%+v", b)
+	t.Logf("%+v", p)
+}
