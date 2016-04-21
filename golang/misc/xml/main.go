@@ -22,6 +22,32 @@ type SOAPHeader struct {
 	Content interface{} `xml:",omitempty"`
 }
 
+// UnmarshalXML unmarshal SOAPHeader
+func (h *SOAPHeader) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	var (
+		token xml.Token
+		err   error
+	)
+Loop:
+	for {
+		if token, err = d.Token(); err != nil {
+			return err
+		}
+		if token == nil {
+			break
+		}
+		switch se := token.(type) {
+		case xml.StartElement:
+			if err = d.DecodeElement(h.Content, &se); err != nil {
+				return err
+			}
+		case xml.EndElement:
+			break Loop
+		}
+	}
+	return nil
+}
+
 // SOAPBody body
 type SOAPBody struct {
 	XMLName xml.Name    `xml:"http://schemas.xmlsoap.org/soap/envelope/ Body"`

@@ -123,6 +123,42 @@ func TestNoHeaderSOAPEnvelopeUnmarshal(t *testing.T) {
 	t.Logf("%+v", p)
 }
 
+func TestWithHeaderSOAPEnvelopeUnmarshal(t *testing.T) {
+	xmldoc := []byte(`
+    <Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+      <Body xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+        <person>
+          <id>1</id>
+          <name>
+            <first>Akira</first>
+            <last>Chiku</last>
+          </name>
+          <age>30</age>
+        </person>
+      </Body>
+      <Header xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+        <MySOAPHeader xmlns="http://akirachiku.com/soap/">
+          <UserId>achiku</UserId>
+          <Password>pass</Password>
+        </MySOAPHeader>
+      </Header>
+    </Envelope>
+	`)
+	p := new(Person)
+	h := new(MySOAPHeader)
+	res := SOAPEnvelope{}
+	res.Body = SOAPBody{Content: p}
+	res.Header = &SOAPHeader{Content: h}
+	if err := xml.Unmarshal(xmldoc, &res); err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("%+v", res)
+	t.Logf("%+v", res.Header.Content)
+	t.Logf("%+v", p)
+	t.Logf("%+v", p.Name)
+	t.Logf("%s, %s", h.UserID, h.Password)
+}
+
 func TestNoEnvelopeSOAPEnvelopeUnmarshal(t *testing.T) {
 	xmldoc := []byte(`
     <Body xmlns="http://schemas.xmlsoap.org/soap/envelope/">
