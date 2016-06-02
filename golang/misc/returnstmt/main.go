@@ -51,9 +51,22 @@ func main() {
 	}
 	log.Printf("%+v", pn)
 
+	var p3 person
+	log.Printf("%+v", p3)
+
+	p4 := person{}
+	log.Printf("%+v", p4)
+
+	p5 := new(person)
+	log.Printf("%+v", p5)
+	if p5 == nil {
+		log.Println("nil")
+	}
+
 	i, err := fn()
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println(i)
+
 }
