@@ -6,6 +6,16 @@ import (
 	"time"
 )
 
+type person struct {
+	Name     string
+	Birthday time.Time
+}
+
+type person2 struct {
+	Name     string
+	Birthday *time.Time
+}
+
 func main() {
 	t := time.Now()
 	t2 := t.AddDate(0, 0, 7)
@@ -18,4 +28,17 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println(t3)
+
+	p1 := person{
+		Name:     "achiku",
+		Birthday: time.Now(),
+	}
+	fmt.Printf("%+v\n", p1)
+
+	dob := time.Now()
+	p2 := person2{
+		Name:     "achiku",
+		Birthday: &dob,
+	}
+	fmt.Printf("%+v\n", p2)
 }
