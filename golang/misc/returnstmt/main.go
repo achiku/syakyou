@@ -22,6 +22,17 @@ func newPerson(name string, dob time.Time) (person, error) {
 	}, nil
 }
 
+func newPersonNamedReturn(name string, dob time.Time) (p person, err error) {
+	if name == "" {
+		return p, errors.New("name is empty")
+	}
+	p = person{
+		Name: name,
+		DOB:  dob,
+	}
+	return
+}
+
 func fn() (int, error) {
 	return 1,
 		errors.New("some error")
@@ -33,6 +44,12 @@ func main() {
 		log.Fatal(err)
 	}
 	log.Printf("%+v", p)
+
+	pn, err := newPersonNamedReturn("achiku", time.Date(1990, time.January, 1, 0, 0, 0, 0, time.Local))
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("%+v", pn)
 
 	i, err := fn()
 	if err != nil {
