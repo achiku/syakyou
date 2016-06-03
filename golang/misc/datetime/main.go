@@ -16,6 +16,10 @@ type person2 struct {
 	Birthday *time.Time
 }
 
+func tp(t time.Time) *time.Time {
+	return &t
+}
+
 func main() {
 	t := time.Now()
 	t2 := t.AddDate(0, 0, 7)
@@ -35,10 +39,15 @@ func main() {
 	}
 	fmt.Printf("%+v\n", p1)
 
-	dob := time.Now()
 	p2 := person2{
 		Name:     "achiku",
-		Birthday: &dob,
+		Birthday: tp(time.Now()),
 	}
 	fmt.Printf("%+v\n", p2)
+
+	p3 := person2{
+		Name:     "achiku",
+		Birthday: tp(time.Date(1985, 8, 18, 8, 8, 8, 8, time.Local)),
+	}
+	fmt.Printf("%+v\n", p3)
 }
