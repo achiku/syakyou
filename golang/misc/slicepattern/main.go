@@ -12,4 +12,8 @@ func main() {
 	fmt.Println(options)
 	fmt.Println(commandLine)
 	fmt.Println(strings.Join(options, " "))
+
+	s := "1234567890"
+	fmt.Println(s[3:])
+	fmt.Println(s[:len(s)-3])
 }
