@@ -11,7 +11,7 @@ It has been alway difficult to keep motivating myself to build my own project, o
 Compared to above activities, syakyou seems much easier to keep doing on a daily basis at low mental friction.
 
 
-- xhandler (2015/12/13 - present)
+- xhandler (2015/12/13 - 2016/01/13)
 - stack (2015/12/08 - 2015/12/09)
 - fluent-agent-hydra (2015/05/12 - 2015/11/10)
 - mackerel-agent (2015/05/02 - 2015/11/03)
