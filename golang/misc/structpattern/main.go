@@ -88,6 +88,13 @@ func (a *StructA) Operation(strategy DoSomething) {
 	strategy()
 }
 
+type level string
+
+const (
+	levelA level = "levelA"
+	levelB level = "levelB"
+)
+
 func main() {
 	teamMembers := []*Person{
 		NewPerson("moqada", 30),
@@ -115,4 +122,12 @@ func main() {
 	structA.Operation(func() {
 		fmt.Println("Operation")
 	})
+
+	l := map[string]level{
+		"testA": levelA,
+		"testB": levelB,
+	}
+	for k, v := range l {
+		fmt.Printf("k: %s, v: %s\n", k, v)
+	}
 }
