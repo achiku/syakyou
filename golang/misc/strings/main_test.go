@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 type testData struct {
 	In  string
@@ -41,6 +44,23 @@ func TestGetLastFour2(t *testing.T) {
 			if s != d.Out {
 				t.Errorf("want %s got %s", d.Out, s)
 			}
+		}
+	}
+}
+
+func TestTremSpace(t *testing.T) {
+	data := map[string]string{
+		"test   ":     "test",
+		"   test    ": "test",
+		"   test":     "test",
+		"  　　test":    "test",
+		"  --test":    "--test",
+	}
+
+	for k, v := range data {
+		s := strings.TrimSpace(k)
+		if s != v {
+			t.Errorf("want %s got %s", v, s)
 		}
 	}
 }
