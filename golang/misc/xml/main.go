@@ -149,6 +149,21 @@ func unmarshalPerson(xmldoc []byte) {
 	return
 }
 
+// Node XML node
+type Node struct {
+	XMLName xml.Name
+	Content []byte `xml:",innerxml"`
+	Nodes   []Node `xml:",any"`
+}
+
+func walk(nodes []Node, f func(Node) bool) {
+	for _, n := range nodes {
+		if f(n) {
+			walk(n.Nodes, f)
+		}
+	}
+}
+
 func main() {
 	fmt.Printf("Hello, world\n")
 }
