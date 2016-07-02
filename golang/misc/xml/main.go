@@ -5,6 +5,7 @@ package main
 
 import (
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"log"
 )
@@ -162,6 +163,21 @@ func walk(nodes []Node, f func(Node) bool) {
 			walk(n.Nodes, f)
 		}
 	}
+}
+
+func getSOAPActionType(doc []byte) (string, error) {
+	var n Node
+	if err := xml.Unmarshal(doc, &n); err != nil {
+		return "", err
+	}
+	for _, n := range n.Nodes {
+		if n.XMLName.Local == "Body" && n.XMLName.Space == "http://schemas.xmlsoap.org/soap/envelope/" {
+			if len(n.Nodes) > 0 {
+				return n.Nodes[0].XMLName.Local, nil
+			}
+		}
+	}
+	return "", errors.New("failed to find main content")
 }
 
 func main() {

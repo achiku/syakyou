@@ -222,3 +222,58 @@ func TestTraverseXML(t *testing.T) {
 		return true
 	})
 }
+
+func TestGetSOAPActionType(t *testing.T) {
+	personDoc := []byte(`
+    <Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+      <Body xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+        <person>
+          <id>1</id>
+        </person>
+      </Body>
+    </Envelope>
+	`)
+	cardDoc := []byte(`
+    <Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+      <Body xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+        <card>
+          <id>1</id>
+        </card>
+      </Body>
+    </Envelope>
+	`)
+
+	// this is not really valid SOAP request
+	irregularDoc := []byte(`
+    <Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+      <Body xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+        <barcode>
+          <id>1</id>
+        </barcode>
+        <authcode>
+          <id>1</id>
+        </authcode>
+      </Body>
+    </Envelope>
+	`)
+
+	data := []struct {
+		input    []byte
+		expected string
+	}{
+		{input: personDoc, expected: "person"},
+		{input: cardDoc, expected: "card"},
+		{input: irregularDoc, expected: "barcode"},
+	}
+
+	for _, d := range data {
+		name, err := getSOAPActionType(d.input)
+		if err != nil {
+			t.Error(err)
+		}
+		t.Log(name)
+		if name != d.expected {
+			t.Errorf("want %s got %s", d.expected, name)
+		}
+	}
+}
