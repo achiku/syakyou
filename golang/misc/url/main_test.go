@@ -18,3 +18,15 @@ func TestURLQuery(t *testing.T) {
 		t.Log(s)
 	}
 }
+
+func TestData(t *testing.T) {
+	data := []map[string][]string{
+		{"key1": []string{"value1"}, "key2": []string{"value2"}},
+		{"hoge": []string{"value1"}, "hage": []string{"value2"}},
+	}
+
+	for _, d := range data {
+		v := url.Values(d)
+		t.Logf("%+v", v)
+	}
+}
