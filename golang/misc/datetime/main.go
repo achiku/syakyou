@@ -23,6 +23,7 @@ func tp(t time.Time) *time.Time {
 func main() {
 	t := time.Now()
 	t2 := t.AddDate(0, 0, 7)
+	fmt.Println(t.Format("15:04:05"))
 	fmt.Println(t.Format("200601021504"))
 	fmt.Println(t2.Format("200601021504"))
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -63,4 +64,13 @@ func TestTremSpace(t *testing.T) {
 			t.Errorf("want %s got %s", v, s)
 		}
 	}
+}
+
+func TestParseFloat(t *testing.T) {
+	n := "1000.01111234445"
+	f, err := strconv.ParseFloat(n, 64)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("%f", f)
 }
