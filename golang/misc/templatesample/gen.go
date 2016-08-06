@@ -4,8 +4,8 @@ package main
 import (
 	"bytes"
 	"go/format"
-	"html/template"
 	"log"
+	"text/template"
 
 	"github.com/pkg/errors"
 )
