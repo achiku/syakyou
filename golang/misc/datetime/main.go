@@ -20,6 +20,14 @@ func tp(t time.Time) *time.Time {
 	return &t
 }
 
+func lastDayOfMonth(t time.Time) time.Time {
+	startMonth := time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, t.Location())
+	endMonth := startMonth.AddDate(0, 1, -1)
+	endMonth = time.Date(
+		endMonth.Year(), endMonth.Month(), endMonth.Day(), 23, 59, 59, 0, endMonth.Location())
+	return endMonth
+}
+
 func main() {
 	t := time.Now()
 	t2 := t.AddDate(0, 0, 7)
@@ -51,4 +59,11 @@ func main() {
 		Birthday: tp(time.Date(1985, 8, 18, 8, 8, 8, 8, time.Local)),
 	}
 	fmt.Printf("%+v\n", p3)
+
+	yymm := "2601"
+	yymmT, err := time.Parse("0601", yymm)
+	if err != nil {
+		fmt.Printf("%s", err.Error())
+	}
+	fmt.Printf("%s", lastDayOfMonth(yymmT))
 }
