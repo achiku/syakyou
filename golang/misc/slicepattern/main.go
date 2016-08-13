@@ -15,6 +15,8 @@ func main() {
 
 	s := "1234567890"
 	fmt.Println(s[3:])
+	fmt.Println(s[:1])
+	fmt.Println(s[:len(s)-1])
 	fmt.Println(s[:len(s)-3])
 
 	i := []int{0, 1, 2, 3}

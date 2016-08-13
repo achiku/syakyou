@@ -65,5 +65,15 @@ func main() {
 	if err != nil {
 		fmt.Printf("%s", err.Error())
 	}
-	fmt.Printf("%s", lastDayOfMonth(yymmT))
+	fmt.Printf("%s\n", lastDayOfMonth(yymmT))
+
+	a := time.Date(2016, 8, 13, 0, 0, 0, 0, time.Local)
+	fmt.Printf("%s\n", a)
+
+	// ldmCases := struct {
+	// 	t time.Time
+	// 	expected time.Time
+	// } {
+	// 	{t}
+	// }
 }
