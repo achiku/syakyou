@@ -5,6 +5,37 @@ import (
 	"strings"
 )
 
+// Brand brand
+type Brand struct {
+	Type string
+	Name string
+}
+
+func find(num string) *Brand {
+	switch {
+	case num[:1] == "4":
+		return &Brand{
+			Type: "visa",
+			Name: "Visa",
+		}
+	case num[:1] == "5":
+		return &Brand{
+			Type: "master",
+			Name: "Master Card",
+		}
+	case num[:2] == "34" || num[:2] == "37":
+		return &Brand{
+			Type: "amex",
+			Name: "American Express",
+		}
+	default:
+		return &Brand{
+			Type: "unknown",
+			Name: "unknown",
+		}
+	}
+}
+
 func main() {
 	cmd := "ls"
 	options := []string{"-l", "-a", "-h"}

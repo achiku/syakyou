@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 )
 
@@ -76,4 +77,6 @@ func main() {
 	// } {
 	// 	{t}
 	// }
+	y, _ := strconv.ParseInt(a.Format("06"), 10, 64)
+	fmt.Println(y)
 }
