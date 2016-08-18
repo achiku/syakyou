@@ -74,3 +74,27 @@ func TestParseFloat(t *testing.T) {
 	}
 	t.Logf("%f", f)
 }
+
+func TestTrim(t *testing.T) {
+	s10 := "          "
+	s5 := "     "
+	cases := []struct {
+		s string
+		e string
+	}{
+		{s: "12345" + s10 + s10, e: "12345"},
+		{s: "12345     " + s5 + s10, e: "12345"},
+		{s: "1234567890" + s10 + s5, e: "1234567890"},
+		{s: "あいうえお" + s10 + s10, e: "あいうえお"},
+		{s: "あいうえお　　　　　" + s10 + s10, e: "あいうえお"},
+		{s: "あいうえおかきくけこたちつてと" + s10, e: "あいうえおかきくけこたちつてと"},
+	}
+
+	for _, d := range cases {
+		a := trim(d.s)
+		if a != d.e {
+			t.Errorf("want '%s' got '%s'", d.e, a)
+		}
+		t.Logf("|%s|->|%s|", d.s, a)
+	}
+}

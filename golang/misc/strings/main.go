@@ -19,3 +19,10 @@ func getLastFour2(s string) (string, error) {
 	}
 	return s[len(s)-4:], nil
 }
+
+func trim(n string) string {
+	r := []rune(n)
+	namePart := string(r[:23])
+	cleanName := strings.TrimRight(strings.TrimRight(namePart, " "), "　")
+	return cleanName
+}
