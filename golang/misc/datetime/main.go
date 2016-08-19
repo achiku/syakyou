@@ -79,4 +79,12 @@ func main() {
 	// }
 	y, _ := strconv.ParseInt(a.Format("06"), 10, 64)
 	fmt.Println(y)
+	tStr = "2016-08-18 22:08:54"
+	t, err = time.Parse("2006-01-02 15:04:05", tStr)
+	t2 = t.In(time.Local)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println(t)
+	log.Println(t2)
 }
