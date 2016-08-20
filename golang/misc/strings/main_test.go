@@ -98,3 +98,7 @@ func TestTrim(t *testing.T) {
 		t.Logf("|%s|->|%s|", d.s, a)
 	}
 }
+
+func TestLower(t *testing.T) {
+	t.Log(strings.ToLower("AAAAA"))
+}
