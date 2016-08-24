@@ -21,6 +21,10 @@ func tp(t time.Time) *time.Time {
 	return &t
 }
 
+func firstDayOfMonth(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, t.Location())
+}
+
 func lastDayOfMonth(t time.Time) time.Time {
 	startMonth := time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, t.Location())
 	endMonth := startMonth.AddDate(0, 1, -1)
@@ -87,4 +91,5 @@ func main() {
 	}
 	log.Println(t)
 	log.Println(t2)
+	log.Println(firstDayOfMonth(t2))
 }
