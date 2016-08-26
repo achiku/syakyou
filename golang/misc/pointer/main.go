@@ -5,6 +5,11 @@ package main
 
 import "log"
 
+type p struct {
+	Name string
+	Flag bool
+}
+
 func main() {
 	var s *string
 	log.Println(s)
@@ -13,4 +18,14 @@ func main() {
 	log.Println(s)
 	log.Println(*s)
 	log.Printf("%s", *s)
+
+	var pi *p
+	var pj *p
+	if true {
+		log.Printf("%+v", pi)
+		log.Printf("%+v", pj)
+		pi = &p{Name: "name", Flag: true}
+	}
+	log.Printf("%s", pi.Name)
+	// log.Printf("%s", pj.Name) // panic!
 }
