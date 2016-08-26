@@ -84,12 +84,15 @@ func main() {
 	y, _ := strconv.ParseInt(a.Format("06"), 10, 64)
 	fmt.Println(y)
 	tStr = "2016-08-18 22:08:54"
-	t, err = time.Parse("2006-01-02 15:04:05", tStr)
-	t2 = t.In(time.Local)
+	tm1, err := time.Parse("2006-01-02 15:04:05", tStr)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println(t)
-	log.Println(t2)
+	tm2, err := time.ParseInLocation("2006-01-02 15:04:05", tStr, time.Local)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println(tm1)
+	log.Println(tm2)
 	log.Println(firstDayOfMonth(t2))
 }
