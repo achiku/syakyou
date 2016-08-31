@@ -71,3 +71,33 @@ func TestMyError(t *testing.T) {
 		}
 	}
 }
+
+func TestMapError(t *testing.T) {
+	m := map[string]string{
+		"key1": "value1",
+		"key2": "value2",
+	}
+
+	cases := []struct {
+		key   string
+		value string
+		ok    bool
+	}{
+		{key: "key1", value: "value1", ok: true},
+		{key: "key2", value: "value2", ok: true},
+		{key: "key3", value: "value3", ok: false},
+	}
+
+	for _, c := range cases {
+		v, ok := m[c.key]
+		if ok != c.ok {
+			t.Errorf("want %t got %t", c.ok, ok)
+		}
+		if c.ok {
+			if v != c.value {
+				t.Errorf("want %s got %s", c.value, v)
+			}
+		}
+		t.Logf("value: %s, ok: %t", v, ok)
+	}
+}
