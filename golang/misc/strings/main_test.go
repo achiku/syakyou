@@ -102,3 +102,22 @@ func TestTrim(t *testing.T) {
 func TestLower(t *testing.T) {
 	t.Log(strings.ToLower("AAAAA"))
 }
+
+func TestTrimer(t *testing.T) {
+	cases := []struct {
+		str      string
+		expected string
+	}{
+		{str: "test program              ", expected: "test program"},
+		{str: "test program だよ             ", expected: "test program だよ"},
+		{str: "あいうえお　だよ             ", expected: "あいうえお　だよ"},
+	}
+
+	for _, c := range cases {
+		res := strings.TrimSpace(c.str)
+		t.Logf("%s|", res)
+		if res != c.expected {
+			t.Errorf("want |%s| got |%s|", c.expected, res)
+		}
+	}
+}
