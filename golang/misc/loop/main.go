@@ -23,4 +23,17 @@ func main() {
 		}
 		log.Println("--")
 	}
+
+	log.Println("labeled break")
+OUTER:
+	for _, i := range l {
+		for _, j := range l {
+			if i%2 == 0 && j%3 == 0 {
+				break OUTER
+			} else {
+				log.Printf("i=%d, j=%d", i, j)
+			}
+			log.Println("------")
+		}
+	}
 }
