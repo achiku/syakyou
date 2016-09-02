@@ -8,9 +8,8 @@ func main() {
 	for _, i := range l {
 		if i%3 == 0 {
 			continue
-		} else {
-			log.Println(i)
 		}
+		log.Println(i)
 		log.Println("--")
 	}
 
@@ -18,18 +17,20 @@ func main() {
 	for _, i := range l {
 		if i%3 == 0 {
 			break
-		} else {
-			log.Println(i)
 		}
+		log.Println(i)
 		log.Println("--")
 	}
 
 	log.Println("labeled break")
 OUTER:
 	for _, i := range l {
+	INNER:
 		for _, j := range l {
-			if i%2 == 0 && j%3 == 0 {
+			if i%4 == 0 {
 				break OUTER
+			} else if i%2 == 0 && j%3 == 0 {
+				break INNER
 			} else {
 				log.Printf("i=%d, j=%d", i, j)
 			}
