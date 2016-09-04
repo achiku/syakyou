@@ -95,4 +95,8 @@ func main() {
 	log.Println(tm1)
 	log.Println(tm2)
 	log.Println(firstDayOfMonth(t2))
+
+	n := time.Now()
+	hho := time.Now().Add(10 * time.Minute)
+	fmt.Printf("%s : %s : %s \n", n, n.Add(10*time.Minute), hho)
 }
