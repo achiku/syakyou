@@ -42,3 +42,11 @@ func (qf *QuickFind) Union(p int, q int) error {
 	}
 	return nil
 }
+
+// Connected checks if p and q are connected
+func (qf *QuickFind) Connected(p int, q int) bool {
+	if qf.ids[p] == qf.ids[q] {
+		return true
+	}
+	return false
+}
