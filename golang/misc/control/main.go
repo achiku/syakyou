@@ -20,4 +20,11 @@ func main() {
 		}
 		fmt.Printf("%d: %d\n", i, n)
 	}
+
+	a := struct {
+		n int64
+	}{
+		n: 100,
+	}
+	fmt.Printf("%+v\n", a)
 }
