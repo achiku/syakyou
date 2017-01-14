@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -25,4 +26,14 @@ func trim(n string) string {
 	namePart := string(r[:23])
 	cleanName := strings.TrimRight(strings.TrimRight(namePart, " "), "　")
 	return cleanName
+}
+
+func createJSON(amount string) []byte {
+	s := fmt.Sprintf(`{"amount": "%s"}`, amount)
+	return []byte(s)
+}
+
+func createJSON2(amount string) []byte {
+	s := fmt.Sprintf("{\"amount\": \"%s\"}", amount)
+	return []byte(s)
 }

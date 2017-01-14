@@ -121,3 +121,10 @@ func TestTrimer(t *testing.T) {
 		}
 	}
 }
+
+func TestCreateJSON(t *testing.T) {
+	a := createJSON("1000")
+	t.Logf("%s", a)
+	b := createJSON2("1000")
+	t.Logf("%s", b)
+}
