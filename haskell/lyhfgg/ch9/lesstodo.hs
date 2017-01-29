@@ -2,6 +2,7 @@ import System.IO
 import System.Directory
 import Data.List
 
+main :: IO()
 main = do
     handle <- openFile "todo.txt" ReadMode
     (tempName, tempHandle) <- openTempFile "." "temp"
