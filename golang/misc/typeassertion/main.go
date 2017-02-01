@@ -10,18 +10,28 @@ func returnInt() interface{} {
 	return 100
 }
 
-func main() {
-	str, ok := returnString().(string)
-	if !ok {
-		log.Printf("expected string but got some thing wrong")
-		return
-	}
-	log.Printf("%s", str)
+type testType string
 
-	i, ok := returnInt().(int)
-	if !ok {
-		log.Printf("expected int but got some thing wrong")
-		return
+func returnTestType() interface{} {
+	var a testType
+	a = "this is test type"
+	return a
+}
+
+type testStruct struct {
+	ID   int
+	Name string
+}
+
+type anotherTestStruct testStruct
+
+func returnAnotherTestStruct() interface{} {
+	return testStruct{
+		ID:   100,
+		Name: "struct name",
 	}
-	log.Printf("%d", i)
+}
+
+func main() {
+	log.Println("hello, world")
 }

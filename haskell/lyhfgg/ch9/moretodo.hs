@@ -4,10 +4,11 @@ import System.IO
 import Data.List
 
 dispatch :: [(String, [String] -> IO ())]
-dispatch :: [("add", add)
-             ,("view", view)
-             ,("remove", remove)
-            ]
+dispatch :: [
+            ("add", add)
+            ,("view", view)
+            ,("remove", remove)
+           ]
 
 add :: String -> IO ()
 add [fileName, todoItem] = appendFile fileName (todoItem ++ "\n")
@@ -30,5 +31,3 @@ main = do
     progName <- getProgName
     mapM putStrLn args
     putStrLn progName
-
-
