@@ -11,6 +11,23 @@ type testData struct {
 	Out string
 }
 
+func TestParseInt(t *testing.T) {
+	data := []struct {
+		In  string
+		Out int64
+	}{
+		{In: "983", Out: 983},
+	}
+
+	for _, d := range data {
+		n, err := strconv.ParseInt(d.In, 10, 64)
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Logf("%d", n)
+	}
+}
+
 func TestGetLastFour(t *testing.T) {
 	data := []testData{
 		{"hello, world!", "rld!"},
