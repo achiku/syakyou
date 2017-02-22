@@ -9,3 +9,15 @@ func TestEmbedAndString(t *testing.T) {
 	}
 	t.Log(s)
 }
+
+func TestEmbed(t *testing.T) {
+	st := a{
+		SecuerStruct: SecuerStruct{
+			Name:     "aaaaa",
+			Password: "pass",
+		},
+		AName: "hogehoge",
+	}
+	t.Logf("%+v", st)
+	t.Logf("%+v", st.SecuerStruct)
+}

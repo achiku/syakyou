@@ -2,6 +2,11 @@ package main
 
 import "fmt"
 
+type a struct {
+	SecuerStruct
+	AName string
+}
+
 // SecuerStruct secure
 type SecuerStruct struct {
 	Name     string
