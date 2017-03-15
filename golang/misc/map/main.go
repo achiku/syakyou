@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+)
 
 func main() {
 	mp := map[string]int{
@@ -19,4 +22,8 @@ func main() {
 		}
 		fmt.Printf("value (%d) for key (%s)\n", v, k)
 	}
+
+	mm := make(map[string]string)
+	mm["test"] = "good"
+	log.Printf("%v", mm)
 }

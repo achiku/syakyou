@@ -23,6 +23,8 @@ func main() {
 		}
 		t := reflect.ValueOf(d.tm)
 		v := reflect.ValueOf(d.value)
+		aa := reflect.TypeOf(1)
+		log.Printf("aaaa %s", aa)
 		log.Printf("v isvalid: %t", v.IsValid())
 		log.Printf("v canset: %t", v.CanSet())
 		log.Printf("t isvalid: %t", t.IsValid())
