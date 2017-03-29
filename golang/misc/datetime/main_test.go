@@ -48,3 +48,37 @@ func TestInterval(t *testing.T) {
 	t.Logf("%f", math.Mod(diffHr5-duration, thirtyDaysCycle))
 	t.Logf("%f", math.Mod(diffHr6-duration, thirtyDaysCycle))
 }
+
+func TestAddDate(t *testing.T) {
+	m := time.Now()
+	t.Logf("%s", m.AddDate(0, -1, 0))
+	t.Logf("%s", m.AddDate(0, 1, 0))
+
+	d1 := time.Date(2017, 3, 29, 0, 0, 0, 0, time.Local)
+	t.Logf("%s", d1)
+	t.Logf("%s", d1.AddDate(0, -1, 0))
+
+	d2 := time.Date(2017, 4, 29, 0, 0, 0, 0, time.Local)
+	t.Logf("%s", d2)
+	t.Logf("%s", d2.AddDate(0, -1, 0))
+
+	d3 := time.Date(2017, 3, 28, 0, 0, 0, 0, time.Local)
+	t.Logf("%s", d3)
+	t.Logf("%s", d3.AddDate(0, -1, 0))
+
+	d4 := time.Date(2017, 3, 30, 0, 0, 0, 0, time.Local)
+	t.Logf("%s", d4)
+	t.Logf("%s", d4.AddDate(0, -1, 0))
+
+	d5 := time.Date(2017, 3, 31, 0, 0, 0, 0, time.Local)
+	t.Logf("%s", d5)
+	t.Logf("%s", d5.AddDate(0, -1, 0))
+
+	d6 := time.Date(2017, 5, 31, 0, 0, 0, 0, time.Local)
+	t.Logf("%s", d6)
+	t.Logf("%s", d6.AddDate(0, -1, 0))
+
+	d7 := time.Date(2017, 5, 31, 0, 0, 0, 0, time.UTC)
+	t.Logf("%s", d7)
+	t.Logf("%s", d7.AddDate(0, 1, 0))
+}
