@@ -82,3 +82,19 @@ func TestAddDate(t *testing.T) {
 	t.Logf("%s", d7)
 	t.Logf("%s", d7.AddDate(0, 1, 0))
 }
+
+func TestBetween(t *testing.T) {
+	n := time.Date(2017, 4, 1, 18, 40, 0, 0, time.Local)
+	noon := time.Date(n.Year(), n.Month(), n.Day(), 12, 0, 0, 0, time.Local)
+	evening := time.Date(n.Year(), n.Month(), n.Day(), 18, 0, 0, 0, time.Local)
+
+	switch {
+	case n.Before(noon):
+		t.Log("good morning")
+	case n.After(noon) && n.Before(evening):
+		t.Log("good afternoon")
+	case n.After(evening):
+		t.Log("good evening")
+	}
+	t.Logf("%s", n)
+}
