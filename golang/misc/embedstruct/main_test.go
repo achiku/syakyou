@@ -21,3 +21,15 @@ func TestEmbed(t *testing.T) {
 	t.Logf("%+v", st)
 	t.Logf("%+v", st.SecuerStruct)
 }
+
+func TestOverwriteField(t *testing.T) {
+	bv := b{
+		SecuerStruct: SecuerStruct{
+			Name:     "this is secure struct name",
+			Password: "secure password",
+		},
+		Name: "this is b name",
+	}
+	t.Logf("%s", bv.Name)
+	t.Logf("%s", bv.SecuerStruct.Name)
+}

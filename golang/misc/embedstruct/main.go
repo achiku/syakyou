@@ -13,6 +13,11 @@ type SecuerStruct struct {
 	Password string
 }
 
+type b struct {
+	SecuerStruct
+	Name string
+}
+
 // String string
 func (s SecuerStruct) String() string {
 	return fmt.Sprintf("{Name: %s, Password: ****}", s.Name)
