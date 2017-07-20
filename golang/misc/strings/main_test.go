@@ -6,6 +6,11 @@ import (
 	"testing"
 )
 
+func TestJoin(t *testing.T) {
+	s := []string{"path", "to", "file.json"}
+	t.Logf("/%s", strings.Join(s, "/"))
+}
+
 type testData struct {
 	In  string
 	Out string
