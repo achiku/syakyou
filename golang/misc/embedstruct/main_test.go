@@ -33,3 +33,13 @@ func TestOverwriteField(t *testing.T) {
 	t.Logf("%s", bv.Name)
 	t.Logf("%s", bv.SecuerStruct.Name)
 }
+
+func TestNestedStruct(t *testing.T) {
+	p := parent{
+		Name: name{
+			First: "Wataru",
+			Last:  "Yamaki",
+		},
+	}
+	t.Logf("%v", p)
+}
