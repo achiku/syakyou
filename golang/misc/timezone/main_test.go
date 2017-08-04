@@ -18,5 +18,14 @@ func TestHandlerUTCDateCol(t *testing.T) {
 	tmJST := tm.In(JST)
 	t.Logf("%s", tm)
 	t.Logf("%s", tmJST)
+	// この下は0になる
 	t.Logf("%s", tm.Sub(tmJST))
+}
+
+func TestCompare(t *testing.T) {
+	tm := time.Date(2017, 8, 18, 0, 0, 0, 0, time.Local)
+	tn := time.Date(2017, 8, 12, 0, 0, 0, 0, time.Local)
+
+	t.Logf("%t", tm.Before(tn))
+	t.Logf("%t", tm.After(tn))
 }
