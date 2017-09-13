@@ -1,7 +1,5 @@
 package main
 
-import "log"
-
 func returnString() interface{} {
 	return "string"
 }
@@ -30,8 +28,4 @@ func returnAnotherTestStruct() interface{} {
 		ID:   100,
 		Name: "struct name",
 	}
-}
-
-func main() {
-	log.Println("hello, world")
 }

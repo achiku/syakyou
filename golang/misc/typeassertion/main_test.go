@@ -39,3 +39,15 @@ func TestStruct(t *testing.T) {
 	t.Logf("%s", reflect.TypeOf(ats))
 	t.Logf("%s", reflect.TypeOf(ts))
 }
+
+type myType int
+
+const (
+	type1 myType = iota
+	type2
+)
+
+func TestTypes(t *testing.T) {
+	t.Logf("%s", reflect.TypeOf(type1))
+	t.Logf("%s", reflect.TypeOf(type2))
+}
