@@ -14,6 +14,13 @@ func TestDate(t *testing.T) {
 	t.Logf("%s", d)
 }
 
+func TestIncrementDate(t *testing.T) {
+	dt := time.Date(2018, 2, 28, 12, 0, 0, 0, time.Local)
+	t.Logf("%+v", dt)
+	di := time.Date(dt.Year(), dt.Month(), dt.Day()+1, 23, 59, 59, 0, time.Local)
+	t.Logf("%+v", di)
+}
+
 func TestInterval(t *testing.T) {
 	// start
 	startDate := time.Date(2016, 9, 16, 0, 0, 0, 0, time.Local)
