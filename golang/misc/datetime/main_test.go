@@ -105,3 +105,12 @@ func TestBetween(t *testing.T) {
 	}
 	t.Logf("%s", n)
 }
+
+func TestFormat(t *testing.T) {
+	s := "07/31/2022"
+	dt, err := time.Parse("01/02/2006", s)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("%s", dt)
+}
