@@ -2,9 +2,21 @@ package main
 
 import "testing"
 
-func TestHelloWorld(t *testing.T) {
-	// t.Fatal("not implemented")
-	// data := []int{1, 2, 3, 4}
+func TestTwice(t *testing.T) {
 	a := twice(1, 11)
+	t.Logf("%v", a)
+}
+
+func TestTwiceWithSlice(t *testing.T) {
+	data := []int{1, 2, 3, 4}
+	a := twice(data...)
+	t.Logf("%v", a)
+}
+
+func TestTwiceWithSliceFunc(t *testing.T) {
+	f := func() []int {
+		return []int{1, 2, 3, 4}
+	}
+	a := twice(f()...)
 	t.Logf("%v", a)
 }
