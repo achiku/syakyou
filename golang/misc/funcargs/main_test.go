@@ -20,3 +20,11 @@ func TestTwiceWithSliceFunc(t *testing.T) {
 	a := twice(f()...)
 	t.Logf("%v", a)
 }
+
+func TestTwiceWithSliceFuncAndSingleValue(t *testing.T) {
+	f := func() []int {
+		return []int{1, 2, 3, 4}
+	}
+	a := twice(append(f(), 1)...)
+	t.Logf("%v", a)
+}
