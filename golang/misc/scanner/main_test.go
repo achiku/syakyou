@@ -38,7 +38,8 @@ func TestReadDataByScanner(t *testing.T) {
 		}
 		// if it's still one transaction
 		// if category ends with 0, it's start of the new transaction
-		// category must be ascending order in the file
+		// others are component of the transaction
+		// category must be ascending order within the same transaction
 		typ := rec.categoryType()
 		switch typ {
 		case "0":
