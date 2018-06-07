@@ -113,6 +113,7 @@ func TestFormat(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Logf("%s", dt)
+	// yymm
 	a := dt.Format("0601")
 	t.Logf("%s", a)
 }
