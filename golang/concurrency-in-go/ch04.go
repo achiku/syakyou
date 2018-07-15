@@ -8,6 +8,67 @@ import (
 	"time"
 )
 
+func pipeline2() {
+	repeat := func(done <-chan interface{}, values ...interface{}) <-chan interface{} {
+		stream := make(chan interface{})
+		go func() {
+			defer close(stream)
+			for {
+				for _, v := range values {
+					select {
+					case <-done:
+						return
+					case stream <- v:
+					}
+				}
+			}
+		}()
+		return stream
+	}
+	take := func(done <-chan interface{}, stream <-chan interface{}, num int) <-chan interface{} {
+		takeStream := make(chan interface{})
+		go func() {
+			defer close(takeStream)
+			for i := 0; i < num; i++ {
+				select {
+				case <-done:
+					return
+				case takeStream <- <-stream:
+				}
+			}
+		}()
+		return takeStream
+	}
+
+	done := make(chan interface{})
+	defer close(done)
+
+	for num := range take(done, repeat(done, 1), 10) {
+		fmt.Printf("%d\n", num)
+	}
+}
+
+func pipeline1() {
+	mul := func(vals []int, m int) []int {
+		results := make([]int, len(vals))
+		for i, v := range vals {
+			results[i] = v * m
+		}
+		return results
+	}
+	add := func(vals []int, m int) []int {
+		results := make([]int, len(vals))
+		for i, v := range vals {
+			results[i] = v + m
+		}
+		return results
+	}
+	ints := []int{1, 2, 3, 4}
+	for _, v := range add(mul(ints, 2), 1) {
+		fmt.Println(v)
+	}
+}
+
 func errorHnadling() {
 	type result struct {
 		er   error

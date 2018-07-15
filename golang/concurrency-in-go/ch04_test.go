@@ -25,3 +25,11 @@ func TestConfinement5(t *testing.T) {
 func TestErrorHandling(t *testing.T) {
 	errorHnadling()
 }
+
+func TestPipeline1(t *testing.T) {
+	pipeline1()
+}
+
+func TestPipeline2(t *testing.T) {
+	pipeline2()
+}
