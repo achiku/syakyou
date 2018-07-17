@@ -35,6 +35,7 @@ func lastDayOfMonth(t time.Time) time.Time {
 
 func main() {
 	t := time.Now()
+	fmt.Printf("mmyy: %s\n", t.Format("0106"))
 	t2 := t.AddDate(0, 0, 7)
 	fmt.Println(t.Format("15:04:05"))
 	fmt.Println(t.Format("200601021504"))
@@ -70,6 +71,7 @@ func main() {
 	if err != nil {
 		fmt.Printf("%s", err.Error())
 	}
+	fmt.Printf("yymm %s", yymmT)
 	fmt.Printf("%s\n", lastDayOfMonth(yymmT))
 
 	a := time.Date(2016, 8, 13, 0, 0, 0, 0, time.Local)
