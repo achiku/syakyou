@@ -22,6 +22,10 @@ func main() {
 		}
 		fmt.Printf("value (%d) for key (%s)\n", v, k)
 	}
+	mp2 := map[string][]string{
+		"key": []string{"val1", "val2"},
+	}
+	log.Printf("%v", mp2)
 
 	mm := make(map[string]string)
 	mm["test"] = "good"
