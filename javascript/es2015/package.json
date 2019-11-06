@@ -16,7 +16,7 @@
     "browserify": "^13.0.0",
     "catw": "^1.0.1",
     "chokidar-cli": "^1.2.0",
-    "eslint": "^1.10.3",
+    "eslint": "^6.6.0",
     "eslint-config-kanmu": "^9.1.0",
     "eslint-plugin-sorting": "0.0.1",
     "watchify": "^3.7.0"
