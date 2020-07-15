@@ -21,7 +21,7 @@
   "author": "achiku",
   "license": "ISC",
   "dependencies": {
-    "lodash": "^3.3.0",
+    "lodash": "^4.17.19",
     "react": "^0.12.2",
     "react-jade": "^2.3.0"
   }
