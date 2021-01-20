@@ -93,3 +93,6 @@ vignettes/*.pdf
 
 # haskell stack
 .stack-work
+
+# virtual env
+venv
