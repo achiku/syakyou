@@ -29,3 +29,17 @@ func TestCompare(t *testing.T) {
 	t.Logf("%t", tm.Before(tn))
 	t.Logf("%t", tm.After(tn))
 }
+
+func TestTimePointer(t *testing.T) {
+	t.Logf("hello")
+	type s struct {
+		tm *time.Time
+	}
+
+	now := time.Now()
+	st := s{
+		tm: &now,
+	}
+	t.Logf("%+v", st)
+	t.Logf("%+v", st.tm)
+}
